@@ -10,14 +10,11 @@ class MutexHandler(object):
     def __init__(self):
         pass
 
-    def getAttributes(self,
-                     attrNames,
-                     blocking=True,
-                     timeout=None):
-        print("Getting attributes for :", self.__class__.__name__)
+    def acquireLock(self,
+                         blocking,
+                         timeout,):
         if blocking == False and timeout != None:
             raise ValueError("nonblocking and timeout cannot be used together")
-        assert type(attrNames) == list, "attrNames must be a list"
         acquired = False
         if timeout == None:
             acquired = self.lock.acquire(blocking)
@@ -28,6 +25,18 @@ class MutexHandler(object):
                 if acquired == True:
                     break
                 pass
+        return acquired
+    
+    def releaseLock(self):
+        self.lock.release()
+
+    def getAttributes(self,
+                     attrNames,
+                     blocking=True,
+                     timeout=None):
+        print("Getting attributes for :", self.__class__.__name__)
+        assert type(attrNames) == list, "attrNames must be a list"
+        acquired = self.acquireLock(blocking=blocking, timeout=timeout)
         values =  {}
         if acquired:
             for attrName in attrNames:
@@ -35,7 +44,7 @@ class MutexHandler(object):
                     print("Attribute ", attrName, " not found in ", self.__class__.__name__)
                 else:
                     values[attrName] = getattr(self, attrName)
-            self.lock.release()
+            self.releaseLock()
         return values
     
     def setAttributes(self,
@@ -43,18 +52,8 @@ class MutexHandler(object):
                      blocking=True,
                      timeout=None):
         print("Setting attributes for :", self.__class__.__name__)
-        if blocking == False and timeout != None:
-            raise ValueError("nonblocking and timeout cannot be used together")
         assert type(attrDict) == dict, "attrDict must be a dictionary"
-        if timeout == None:
-            acquired = self.lock.acquire(blocking)
-        else:
-            onset = time.time()
-            while time.time()-onset < timeout:
-                acquired = self.lock.acquire(False)
-                if acquired == True:
-                    break
-                time.sleep(0.01)
+        acquired = self.acquireLock(blocking=blocking, timeout=timeout)
         if not acquired:
             return False
         else:
@@ -63,7 +62,7 @@ class MutexHandler(object):
                     print("Attribute ", attrName, " not found in ", self.__class__.__name__)
                 else:
                     setattr(self, attrName, attrDict[attrName])
-            self.lock.release()
+            self.releaseLock()
             return True
     
     def getSetAttributes(self,
@@ -71,18 +70,8 @@ class MutexHandler(object):
                      blocking=True,
                      timeout=None):
         print("Setting attributes for :", self.__class__.__name__)
-        if blocking == False and timeout != None:
-            raise ValueError("nonblocking and timeout cannot be used together")
         assert type(attrDict) == dict, "attrDict must be a dictionary"
-        if timeout == None:
-            acquired = self.lock.acquire(blocking)
-        else:
-            onset = time.time()
-            while time.time()-onset < timeout:
-                acquired = self.lock.acquire(False)
-                if acquired == True:
-                    break
-                time.sleep(0.01)
+        acquired = self.acquireLock(blocking=blocking, timeout=timeout)
         if not acquired:
             return False
         else:
@@ -97,5 +86,5 @@ class MutexHandler(object):
             if attrValueCheck:
                 for attrName in attrDict.keys():
                     setattr(self, attrName, attrDict[attrName])
-            self.lock.release()
+            self.releaseLock()
             return True

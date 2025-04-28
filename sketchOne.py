@@ -41,8 +41,23 @@ class EngagementState(MutexHandler):
     lookingAway = False # triggered by timeouts
     lock = Lock()
 
-class RecordingHandler(object):
-    pass
+class RecordingState(MutexHandler):
+    recording = False
+    currentFile = ''
+    startTime = -1
+    containsSpeech = False
+    lock = Lock()
+
+class SpeechRequest(object):
+    speechType = 'speech'
+    priority = 'normal'
+    utterance = ''
+
+class OpenAIResponseRequest(object):
+    responseType = 'response'
+    # responseType = 'sessionUpdate'
+    request = ''
+
 
 class EngagementStateHandler(object):
     '''
