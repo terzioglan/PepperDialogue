@@ -30,13 +30,14 @@ class RecordingFileHandler(object):
         filename += '_transcribed'
         return filename
     
-    def start(self, recordigFileQueue, transcriptionQueue):
+    def start(self, recordigFileQueue, transcriptionQueue, recordingFilenameBuffer):
         while self.running:
             try:
                 while not recordigFileQueue.empty():
                     filename = recordigFileQueue.get()
                     file = self.fetch(filename)
                     transcriptionQueue.put({filename:"available now"})
+                    recordingFilenameBuffer.put(filename)
                     fileDenoised = self.denoise(file)
                     transcription = self.transcribe(filename)
                     transcriptionQueue.put({filename:transcription})
