@@ -35,22 +35,7 @@ from threading import Thread, Lock, Queue
 
 
 
-class SpeechRequest(object):
-    speechType = 'speech'
-    priority = 'normal'
-    utterance = ''
 
-class OpenAIResponseRequest(object):
-    responseType = 'response'
-    # responseType = 'sessionUpdate'
-    request = ''
-
-class RecordingState(CustomMutexHandler):
-    recording = False
-    currentFile = ''
-    startTime = -1
-    containsSpeech = False
-    lock = Lock()
 
 class RecordingHandler(object):
     def __init__(self, config):
