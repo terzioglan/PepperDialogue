@@ -11,8 +11,8 @@ class MutexHandler(object):
         pass
 
     def acquireLock(self,
-                         blocking,
-                         timeout,):
+                    blocking,
+                    timeout,):
         if blocking == False and timeout != None:
             raise ValueError("nonblocking and timeout cannot be used together")
         acquired = False

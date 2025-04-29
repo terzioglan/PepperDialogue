@@ -6,11 +6,17 @@ class RobotState(MutexHandler):
     '''
     These will be set by the robot's state machine.
     '''
-    recordingContainsSpeech = False
     speaking = False
     canSpeak = True
     canListen = True
     lastSpoke = -1
+    lock = Lock()
+
+class RecordingState(MutexHandler):
+    recording = False
+    currentFile = ''
+    startTime = -1
+    containsSpeech = False
     lock = Lock()
 
 class HumanState(MutexHandler):
@@ -39,13 +45,6 @@ class EngagementState(MutexHandler):
     longSilence = False # triggered by timeouts
     leaving = False # triggered by timeouts
     lookingAway = False # triggered by timeouts
-    lock = Lock()
-
-class RecordingState(MutexHandler):
-    recording = False
-    currentFile = ''
-    startTime = -1
-    containsSpeech = False
     lock = Lock()
 
 class SpeechRequest(object):
