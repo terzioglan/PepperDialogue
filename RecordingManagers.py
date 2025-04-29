@@ -67,6 +67,12 @@ class RecordingHandler(object):
                                     print("Padding recording...")
                                     pass
                     self.stopRecording()
+                    recordingState.setAttributes({
+                        "recording": False,
+                        "startTime": -1.0,
+                        "currentFile": '',
+                        "containsSpeech": False,
+                        })
 
                     if recordingState.getAttributes(['containsSpeech']):
                         self.acceptRecording(recordingFileQueue, currentFilename)
