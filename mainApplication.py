@@ -3,6 +3,7 @@
 import time, sys, argparse
 from multiprocessing import Process, Queue
 from functools import partial
+from threading import Thread
 
 import qi
 
@@ -33,7 +34,7 @@ def callback_speechDetected(
         else:
             print("Unknown value in callback_speechDetected: ", value)
 
-def main():
+def queueTest():
     transcriptionQueue = Queue(maxsize=100)
     recordingFileQueue = Queue(maxsize=100)
     recordingHandler = RecordingFileHandler()
@@ -57,7 +58,7 @@ def main():
         recordingHandlerProcess.join()
         print("Exiting main loop.")
 
-def recordingTest(session):
+def main(session):
     '''
     Left here XXX
     ready to test if the recording loop can recording loop.
@@ -90,27 +91,35 @@ def recordingTest(session):
         ))
     #########################################################################
 
+    
+    queue_recordingsWithSpeech = Queue(maxsize=100)
+    queue_recordingFilenameBuffer = Queue(maxsize=100)
+    recordingState = RecordingState()
+    robotState = RobotState()
+    humanState = HumanState()
 
-    recordingFileQueue = Queue(maxsize=100)
-    recordingFilenameBufferQueue = Queue(maxsize=100)
-    recordingState = RecordingState(),
-    robotState = RobotState(),
-    humanState = HumanState(),
+    recordingHandler = RecordingHandler(
+        method_startRecording=alAudioRecorderService.startMicrophonesRecording, 
+        method_stopRecording=alAudioRecorderService.stopMicrophonesRecording)
+    
 
-    recordingHandler = RecordingHandler(recordingService = alAudioRecorderService)
+    recordingHandlerProcess = Thread(
+        target = recordingHandler.start,
+        args = (recordingState,
+                robotState,
+                humanState,
+                queue_recordingsWithSpeech,
+                queue_recordingFilenameBuffer,),)
+    recordingHandlerProcess.start()
     
     try:
-        recordingHandler.start(
-            recordingState = recordingState,
-            robotState = robotState,
-            humanState = humanState,
-            recordingFileQueue = recordingFileQueue,
-            recordingFilenameBufferQueue = recordingFilenameBufferQueue,
-        )
+        while True:
+            # do stuff
+            time.sleep(1.0)
 
     except KeyboardInterrupt:
         recordingHandler.stop = True
-        # recordingHandlerProcess.join()
+        recordingHandlerProcess.join()
         print("Exiting main loop.")
 
 

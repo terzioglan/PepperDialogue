@@ -30,11 +30,27 @@ class MutexHandler(object):
     def releaseLock(self):
         self.lock.release()
 
+    def getAttribute(self,
+                     attrName,
+                     blocking=True,
+                     timeout=None):
+        # print("Getting attributes for :", self.__class__.__name__)
+        assert type(attrName) == str, "attrName must be a string"
+        if hasattr(self, attrName) == False:
+            print("Attribute ", attrName, " not found in ", self.__class__.__name__)
+            return None
+        acquired = self.acquireLock(blocking=blocking, timeout=timeout)
+        if acquired:
+            value = getattr(self, attrName)
+            self.releaseLock()
+            return value
+        return None
+    
     def getAttributes(self,
                      attrNames,
                      blocking=True,
                      timeout=None):
-        print("Getting attributes for :", self.__class__.__name__)
+        # print("Getting attributes for :", self.__class__.__name__)
         assert type(attrNames) == list, "attrNames must be a list"
         acquired = self.acquireLock(blocking=blocking, timeout=timeout)
         values =  {}
@@ -46,12 +62,12 @@ class MutexHandler(object):
                     values[attrName] = getattr(self, attrName)
             self.releaseLock()
         return values
-    
+        
     def setAttributes(self,
                      attrDict,
                      blocking=True,
                      timeout=None):
-        print("Setting attributes for :", self.__class__.__name__)
+        # print("Setting attributes for :", self.__class__.__name__)
         assert type(attrDict) == dict, "attrDict must be a dictionary"
         acquired = self.acquireLock(blocking=blocking, timeout=timeout)
         if not acquired:
@@ -69,7 +85,7 @@ class MutexHandler(object):
                      attrDict,
                      blocking=True,
                      timeout=None):
-        print("Setting attributes for :", self.__class__.__name__)
+        # print("Setting attributes for :", self.__class__.__name__)
         assert type(attrDict) == dict, "attrDict must be a dictionary"
         acquired = self.acquireLock(blocking=blocking, timeout=timeout)
         if not acquired:

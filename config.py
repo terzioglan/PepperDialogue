@@ -1,4 +1,5 @@
 LISTENING_PADDING_DURATION = 0.8
+# LISTENING_PADDING_DURATION = 2.0 # for testing
 IDLE_MICROPHONE_RECORDING_DURATION = 5
 BUFFERED_RECORDING_FILENAMES = ["recording1.wav", 
                                 "recording2.wav", 
