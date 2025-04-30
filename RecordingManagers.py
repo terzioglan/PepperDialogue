@@ -100,32 +100,39 @@ class RecordingHandler(object):
     then finally returns the transcribed text as well as the filename so that 
     it can be made available for the recording file buffer.
     '''
-    def __init__(self,denoising = True, noiseSuppressionHeader = None, noiseSuppressionCharSet = None):
+    def __init__(self, method_fetchRecording, denoising = True, noiseSuppressionHeader = None, noiseSuppressionCharSet = None):
         if noiseSuppressionHeader is not None and noiseSuppressionCharSet is None:
             raise ValueError("You must provide characters to be removed from transcriptions to use noise supperssion headers.")
         self.stop = False
         self.denoising = denoising
         self.noiseSuppressionHeader = noiseSuppressionHeader
         self.noiseSuppressionHeaderCharacters = noiseSuppressionCharSet
+        self.method_fetchRecording = method_fetchRecording
     
-    def fetch(self, method_fetchFile, filename):
-        pass
+    def fetch(self, filename):
+        self.method_fetchRecording()
     
     def denoise(self, filename):
+        pass
+    
+    def appendSuppressionHeader(self, filename):
         pass
 
     def transcribe(self, filename):
         filename += '_transcribed'
         return filename
     
-    def start(self, queue_recordingsWithSpeech, queue_transcriptions, queue_recordingFilenameBuffer, method_fetchFile):
+    def start(self, queue_recordingsWithSpeech, queue_recordingFilenameBuffer, queue_transcriptions,):
         while not self.stop:
             try:
                 while not queue_recordingsWithSpeech.empty():
                     filename = queue_recordingsWithSpeech.get()
-                    file = self.fetch(method_fetchFile, filename)
+                    file = self.fetch(filename)
                     queue_recordingFilenameBuffer.put(filename)
-                    fileDenoised = self.denoise(file)
+                    if self.noiseSuppressionHeader is not None:
+                        fileWithHeader = self.appendSuppressionHeader()
+                    if self.denoising:
+                        fileDenoised = self.denoise(file)
                     transcription = self.transcribe(fileDenoised)
                     queue_transcriptions.put({filename:transcription})
             except Exception as e:

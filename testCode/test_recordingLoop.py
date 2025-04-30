@@ -142,8 +142,8 @@ if __name__ == "__main__":
 
         # TEST4: MULTIPLE SPEECH OVER ALL FILES TEST ##########################################
         # person speaks briefly for a second, then stops briefly then speaks again for a second for 10 times.
-        # 1 recording file should be added to queue_recordingsWithSpeech,
-        # rest recording files should be infinitely recycled.
+        # all recording files should be added to queue_recordingsWithSpeech,
+        # and the recordingmanager should complain no available filenames.
         print("MULTIPLE SPEECH OVER ALL FILES TEST STARTING")
         input("enter to continue")
         time.sleep(2.0)
