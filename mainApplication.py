@@ -4,10 +4,12 @@ import time, sys, argparse
 from multiprocessing import Process, Queue
 from functools import partial
 from threading import Thread
+from scp import SCPClient
+from paramiko import SSHClient
 
 import qi
 
-from RecordingManagers import RecordingFileHandler, RecordingHandler
+from RecordingManagers import RecordingManager, RecordingHandler
 from sketchOne import RobotState, RecordingState, HumanState
 from config import *
 
@@ -90,36 +92,63 @@ def main(session):
         # robotHandler,
         ))
     #########################################################################
+    # SSH file transfer setup for Pepper ################################################################
+    ssh = SSHClient()
+    ssh.load_system_host_keys()
+    try:
+        ssh.connect(hostname=args.ip, username="nao", password="nao")
+    except Exception as e:
+        print("cannot ssh into pepper", e)
+        return 1
+    scpClient = SCPClient(ssh.get_transport())
+    #####################################################################################################
 
     
     queue_recordingsWithSpeech = Queue(maxsize=100)
     queue_recordingFilenameBuffer = Queue(maxsize=100)
+    queue_transcriptions = Queue(maxsize=100)
     recordingState = RecordingState()
     robotState = RobotState()
     humanState = HumanState()
 
-    recordingHandler = RecordingHandler(
+    recordingManager = RecordingManager(
         method_startRecording=alAudioRecorderService.startMicrophonesRecording, 
         method_stopRecording=alAudioRecorderService.stopMicrophonesRecording)
     
+    recordingHandler = RecordingHandler(
+        method_fetchRecording=scpClient.get,
+        denoising=True,
+        noiseSuppressionHeader = "./noiseSuppressionHeader.wav",
+        noiseSuppressionCharset = r'f\W*f\W*m\W*[pb]\W*g\W*',
+    )
 
-    recordingHandlerProcess = Thread(
-        target = recordingHandler.start,
+    recordingManagerThread = Thread(
+        target = recordingManager.start,
         args = (recordingState,
                 robotState,
                 humanState,
                 queue_recordingsWithSpeech,
                 queue_recordingFilenameBuffer,),)
-    recordingHandlerProcess.start()
+    recordingManagerThread.start()
     
+    recordingHandlerThread = Thread(
+        target = recordingHandler.start,
+        args = (queue_recordingsWithSpeech,
+                queue_recordingFilenameBuffer,
+                queue_transcriptions,),)
+    recordingHandlerThread.start()
+
     try:
         while True:
             # do stuff
             time.sleep(1.0)
 
     except KeyboardInterrupt:
+        recordingManager.stop = True
         recordingHandler.stop = True
-        recordingHandlerProcess.join()
+        recordingManagerThread.join()
+        recordingHandlerThread.join()
+        scpClient.close()
         print("Exiting main loop.")
 
 

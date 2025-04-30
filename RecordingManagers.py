@@ -1,6 +1,6 @@
 # python2
 
-import time
+import time, ffmpeg, os
 
 from config import BUFFERED_RECORDING_FILENAMES, IDLE_MICROPHONE_RECORDING_DURATION, LISTENING_PADDING_DURATION, REMOTE_AUDIO_FILE_PATH
 from config import LISTENING_PADDING_DURATION
@@ -108,15 +108,62 @@ class RecordingHandler(object):
         self.noiseSuppressionHeader = noiseSuppressionHeader
         self.noiseSuppressionHeaderCharacters = noiseSuppressionCharSet
         self.method_fetchRecording = method_fetchRecording
+
     
     def fetch(self, filename):
         self.method_fetchRecording()
+
+        while not self.recordingsWaitingForCopy.empty():
+            self.nRecordings += 1
+            targetRecording = self.recordingsWaitingForCopy.get()
+            print("retrieving audio file from pepper: " + str(targetRecording))
+            self.secureCopyProtocolService.get(self.remoteFileStoragePath+targetRecording, local_path=self.localFileStoragePath)
+            self.newAudioFileName = str(self.nRecordings) + targetRecording
+            os.rename(self.localFileStoragePath+targetRecording,self.localFileStoragePath+self.newAudioFileName)
+            self.recordingQueue.put(self.newAudioFileName)
+            self.recordingBufferFilenames.put(targetRecording)
+
+        self.secureCopyProtocolService.close()
+
     
-    def denoise(self, filename):
-        pass
+    def denoise(self, inputFile):
+        outputFile = inputFile[:-4]+"_denoised.wav"
+        try:
+            (
+                ffmpeg
+                .input(inputFile)                                                           # Takes 'microphoneTest.wav'
+                .output(outputFile, af="highpass=f=200, lowpass=f=3000, afftdn=nf=-20")     # Gives 'microphoneTest_denoised.wav'
+                .overwrite_output()                                                         # To automatically overwrite file incase prompted
+                .global_args('-loglevel', 'quiet')                                          # Hide logs
+                .run()
+            )
+            return outputFile
+        except Exception as e:
+            print("denoising error: ", e)
+            return inputFile
     
-    def appendSuppressionHeader(self, filename):
-        pass
+    def appendSuppressionHeader(self, headerFile, recordingFile):
+        outputFile = recordingFile[:-4]+"_header.wav"
+        try:
+            # Create a temporary file and write the list of audio files to concatenate
+            audioFilesList = 'audioFiles.txt'
+            with open(audioFilesList, 'w') as f:
+                f.write("file '{0}'\n".format(headerFile))
+                f.write("file '{0}'\n".format(recordingFile))
+
+            (
+                ffmpeg
+                .input(audioFilesList, format='concat', safe=0)     # Concat files
+                .output(outputFile, acodec='copy')                  # Outputs 'microphoneTest_denoised_header.wav'
+                .overwrite_output()                                 # To automatically overwrite file in case prompted
+                .global_args('-loglevel', 'quiet')                  # Hide logs
+                .run()
+            )     
+            os.remove(audioFilesList)                               # Remove the temporary file
+            return outputFile
+        except Exception as e:
+            print("concatenating error: ", e)
+            return recordingFile
 
     def transcribe(self, filename):
         filename += '_transcribed'
@@ -127,7 +174,7 @@ class RecordingHandler(object):
             try:
                 while not queue_recordingsWithSpeech.empty():
                     filename = queue_recordingsWithSpeech.get()
-                    file = self.fetch(filename)
+                    file = self.fetch(REMOTE_AUDIO_FILE_PATH+filename)
                     queue_recordingFilenameBuffer.put(filename)
                     if self.noiseSuppressionHeader is not None:
                         fileWithHeader = self.appendSuppressionHeader()
