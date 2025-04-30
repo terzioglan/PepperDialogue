@@ -2,8 +2,9 @@
 
 import time, ffmpeg, os
 
-from config import BUFFERED_RECORDING_FILENAMES, IDLE_MICROPHONE_RECORDING_DURATION, LISTENING_PADDING_DURATION, REMOTE_AUDIO_FILE_PATH
+from config import BUFFERED_RECORDING_FILENAMES, IDLE_MICROPHONE_RECORDING_DURATION, LISTENING_PADDING_DURATION, REMOTE_AUDIO_FILE_PATH, LOCAL_AUDIO_FILE_PATH
 from config import LISTENING_PADDING_DURATION
+from utils import fixNameConflicts
 
 class RecordingManager(object):
     '''
@@ -108,22 +109,25 @@ class RecordingHandler(object):
         self.noiseSuppressionHeader = noiseSuppressionHeader
         self.noiseSuppressionHeaderCharacters = noiseSuppressionCharSet
         self.method_fetchRecording = method_fetchRecording
-
+        self.defaultAudioName = "localRec"
     
-    def fetch(self, filename):
-        self.method_fetchRecording()
+    def fetch(self, remotePath, localPath, filename):
+        self.method_fetchRecording(remotePath+filename, local_path=localPath)
+        newFilename = fixNameConflicts(localPath+self.defaultAudioName, filename[-4:])
+        os.rename(localPath+filename,localPath+newFilename)
+        return localPath+newFilename
+        # while not self.recordingsWaitingForCopy.empty():
+        #     self.nRecordings += 1
+        #     targetRecording = self.recordingsWaitingForCopy.get()
+        #     print("retrieving audio file from pepper: " + str(targetRecording))
+        #     self.secureCopyProtocolService.get(self.remoteFileStoragePath+targetRecording, local_path=self.localFileStoragePath)
+        #     fixNameConflicts(self.defaultAudioName, targetRecording[-4:])
+        #     self.newAudioFileName = str(self.nRecordings) + targetRecording
+        #     os.rename(self.localFileStoragePath+targetRecording,self.localFileStoragePath+self.newAudioFileName)
+        #     self.recordingQueue.put(self.newAudioFileName)
+        #     self.recordingBufferFilenames.put(targetRecording)
 
-        while not self.recordingsWaitingForCopy.empty():
-            self.nRecordings += 1
-            targetRecording = self.recordingsWaitingForCopy.get()
-            print("retrieving audio file from pepper: " + str(targetRecording))
-            self.secureCopyProtocolService.get(self.remoteFileStoragePath+targetRecording, local_path=self.localFileStoragePath)
-            self.newAudioFileName = str(self.nRecordings) + targetRecording
-            os.rename(self.localFileStoragePath+targetRecording,self.localFileStoragePath+self.newAudioFileName)
-            self.recordingQueue.put(self.newAudioFileName)
-            self.recordingBufferFilenames.put(targetRecording)
-
-        self.secureCopyProtocolService.close()
+        # self.secureCopyProtocolService.close()
 
     
     def denoise(self, inputFile):
@@ -174,13 +178,13 @@ class RecordingHandler(object):
             try:
                 while not queue_recordingsWithSpeech.empty():
                     filename = queue_recordingsWithSpeech.get()
-                    file = self.fetch(REMOTE_AUDIO_FILE_PATH+filename)
+                    copiedFile = self.fetch(REMOTE_AUDIO_FILE_PATH, LOCAL_AUDIO_FILE_PATH, filename)
                     queue_recordingFilenameBuffer.put(filename)
                     if self.noiseSuppressionHeader is not None:
-                        fileWithHeader = self.appendSuppressionHeader()
+                        copiedFileWithHeader = self.appendSuppressionHeader(copiedFile)
                     if self.denoising:
-                        fileDenoised = self.denoise(file)
-                    transcription = self.transcribe(fileDenoised)
+                        copiedFileWithHeaderDenoised = self.denoise(copiedFileWithHeader)
+                    transcription = self.transcribe(copiedFileWithHeaderDenoised)
                     queue_transcriptions.put({filename:transcription})
             except Exception as e:
                 print("Error: ", e)
