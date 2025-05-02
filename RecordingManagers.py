@@ -2,7 +2,7 @@
 
 import time, ffmpeg, os
 
-from config import BUFFERED_RECORDING_FILENAMES, IDLE_MICROPHONE_RECORDING_DURATION, LISTENING_PADDING_DURATION, REMOTE_AUDIO_FILE_PATH, LOCAL_AUDIO_FILE_PATH
+from config import BUFFERED_RECORDING_FILENAMES, IDLE_MICROPHONE_RECORDING_DURATION, LISTENING_PADDING_DURATION, SOURCE_AUDIO_FILE_PATH, LOCAL_AUDIO_FILE_PATH
 from config import LISTENING_PADDING_DURATION
 from utils import fixNameConflicts
 
@@ -21,8 +21,8 @@ class RecordingManager(object):
     def startRecording(self,filename,):
         try:
             # print("Recording started...")
-            # self.recordingService.startMicrophonesRecording(REMOTE_AUDIO_FILE_PATH + filename, "wav", bitrate, microphoneArray)
-            self.method_startRecording(REMOTE_AUDIO_FILE_PATH + filename, "wav", bitrate = 16000, microphoneArray = [1,1,1,1])
+            # self.recordingService.startMicrophonesRecording(SOURCE_AUDIO_FILE_PATH + filename, "wav", bitrate, microphoneArray)
+            self.method_startRecording(SOURCE_AUDIO_FILE_PATH + filename, "wav", bitrate = 16000, microphoneArray = [1,1,1,1])
         except Exception as e:
             print("couldn't start recording: ", e)
         else:
@@ -101,9 +101,14 @@ class RecordingHandler(object):
     then finally returns the transcribed text as well as the filename so that 
     it can be made available for the recording file buffer.
     '''
-    def __init__(self, method_fetchRecording, denoising = True, noiseSuppressionHeader = None, noiseSuppressionCharSet = None):
+    def __init__(self, 
+                 method_fetchRecording, 
+                 denoising = True, 
+                 noiseSuppressionHeader = None, 
+                 noiseSuppressionCharSet = None,
+                 ):
         if noiseSuppressionHeader is not None and noiseSuppressionCharSet is None:
-            raise ValueError("You must provide characters to be removed from transcriptions to use noise supperssion headers.")
+            raise ValueError("You must provide a character set to be removed from transcriptions to use noise supperssion headers.")
         self.stop = False
         self.denoising = denoising
         self.noiseSuppressionHeader = noiseSuppressionHeader
@@ -113,7 +118,7 @@ class RecordingHandler(object):
     
     def fetch(self, remotePath, localPath, filename):
         self.method_fetchRecording(remotePath+filename, local_path=localPath)
-        newFilename = fixNameConflicts(localPath+self.defaultAudioName, filename[-4:])
+        newFilename = fixNameConflicts(localPath+self.defaultAudioName, '.'+filename.split('.')[-1])
         os.rename(localPath+filename,localPath+newFilename)
         return localPath+newFilename
         # while not self.recordingsWaitingForCopy.empty():
@@ -131,7 +136,8 @@ class RecordingHandler(object):
 
     
     def denoise(self, inputFile):
-        outputFile = inputFile[:-4]+"_denoised.wav"
+        extension = '.' + inputFile.split(".")[-1]
+        outputFile = inputFile.rstrip(extension) + "_denoised" + extension
         try:
             (
                 ffmpeg
@@ -147,7 +153,8 @@ class RecordingHandler(object):
             return inputFile
     
     def appendSuppressionHeader(self, headerFile, recordingFile):
-        outputFile = recordingFile[:-4]+"_header.wav"
+        extension = '.' + recordingFile.split(".")[-1]
+        outputFile = recordingFile.rstrip(extension) + "_header" + extension
         try:
             # Create a temporary file and write the list of audio files to concatenate
             audioFilesList = 'audioFiles.txt'
@@ -173,12 +180,12 @@ class RecordingHandler(object):
         filename += '_transcribed'
         return filename
     
-    def start(self, queue_recordingsWithSpeech, queue_recordingFilenameBuffer, queue_transcriptions,):
+    def start(self, recordingState, queue_recordingsWithSpeech, queue_recordingFilenameBuffer, queue_transcriptions,):
         while not self.stop:
             try:
                 while not queue_recordingsWithSpeech.empty():
                     filename = queue_recordingsWithSpeech.get()
-                    copiedFile = self.fetch(REMOTE_AUDIO_FILE_PATH, LOCAL_AUDIO_FILE_PATH, filename)
+                    copiedFile = self.fetch(SOURCE_AUDIO_FILE_PATH, LOCAL_AUDIO_FILE_PATH, filename)
                     queue_recordingFilenameBuffer.put(filename)
                     if self.noiseSuppressionHeader is not None:
                         copiedFileWithHeader = self.appendSuppressionHeader(copiedFile)
@@ -186,5 +193,9 @@ class RecordingHandler(object):
                         copiedFileWithHeaderDenoised = self.denoise(copiedFileWithHeader)
                     transcription = self.transcribe(copiedFileWithHeaderDenoised)
                     queue_transcriptions.put({filename:transcription})
+                    if queue_recordingsWithSpeech.empty():
+                        recordingState.getSetAttributes({"containsSpeech": False}, {"pipelineClear": True})
+                        print("pipeline clear")
+
             except Exception as e:
                 print("Error: ", e)

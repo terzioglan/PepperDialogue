@@ -17,6 +17,8 @@ class RecordingState(MutexHandler):
     currentFile = ''
     startTime = -1
     containsSpeech = False
+    pipelineClear = True # this is set to false once a recording gets into the pipeline,
+    # and True once every last recording in the pipeline is transcribed.
     lock = Lock()
 
 class HumanState(MutexHandler):

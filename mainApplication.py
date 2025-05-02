@@ -25,6 +25,7 @@ def callback_speechDetected(
             })
             recordingState.setAttributes({
                 "containsSpeech": True,
+                "pipelineClear": False,
             })
             # robotHandler.cueSpeechDetected()
         elif value == "EndOfProcess":

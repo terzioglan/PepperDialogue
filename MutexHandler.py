@@ -82,25 +82,35 @@ class MutexHandler(object):
             return True
     
     def getSetAttributes(self,
-                     attrDict,
+                     attrValueConditionDict,
+                     setAttrDict,
                      blocking=True,
                      timeout=None):
+        '''
+        sets the attributes to specified in setAttrDict only if
+        current attribute values match with the ones in attrValueConditionDict.
+        '''
         # print("Setting attributes for :", self.__class__.__name__)
-        assert type(attrDict) == dict, "attrDict must be a dictionary"
+        assert type(attrValueConditionDict) == dict and type(setAttrDict) == dict, "attrDicts must be dictionaries"
+
+        for attrName in attrValueConditionDict.keys():
+            if hasattr(self, attrName) == False:
+                print("Attribute ", attrName, " not found in ", self.__class__.__name__)
+                return False
         acquired = self.acquireLock(blocking=blocking, timeout=timeout)
         if not acquired:
             return False
         else:
             attrValueCheck = True
-            for attrName in attrDict.keys():
-                if hasattr(self, attrName) == False:
-                    attrValueCheck = False
-                    print("Attribute ", attrName, " not found in ", self.__class__.__name__)
-                    break
-                else:
-                    attrValueCheck = attrValueCheck and (attrDict[attrName] == getattr(self, attrName))
+            for attrName in attrValueConditionDict.keys():
+                attrValueCheck = attrValueCheck and (attrValueConditionDict[attrName] == getattr(self, attrName))
             if attrValueCheck:
-                for attrName in attrDict.keys():
-                    setattr(self, attrName, attrDict[attrName])
+                for attrName in setAttrDict.keys():
+                    if hasattr(self, attrName) == False:
+                        print("Attribute ", attrName, " not found in ", self.__class__.__name__)
+                    else:
+                        setattr(self, attrName, setAttrDict[attrName])
+            else:
+                print("attribute value check failed. Not setting new attributes.")
             self.releaseLock()
-            return True
+            return attrValueCheck
