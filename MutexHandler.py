@@ -82,18 +82,18 @@ class MutexHandler(object):
             return True
     
     def getSetAttributes(self,
-                     attrValueConditionDict,
+                     conditions,
                      setAttrDict,
                      blocking=True,
                      timeout=None):
         '''
         sets the attributes to specified in setAttrDict only if
-        current attribute values match with the ones in attrValueConditionDict.
+        current attribute values match with the ones in conditions.
         '''
         # print("Setting attributes for :", self.__class__.__name__)
-        assert type(attrValueConditionDict) == dict and type(setAttrDict) == dict, "attrDicts must be dictionaries"
+        assert type(conditions) == dict and type(setAttrDict) == dict, "attrDicts must be dictionaries"
 
-        for attrName in attrValueConditionDict.keys():
+        for attrName in conditions.keys():
             if hasattr(self, attrName) == False:
                 print("Attribute ", attrName, " not found in ", self.__class__.__name__)
                 return False
@@ -102,8 +102,8 @@ class MutexHandler(object):
             return False
         else:
             attrValueCheck = True
-            for attrName in attrValueConditionDict.keys():
-                attrValueCheck = attrValueCheck and (attrValueConditionDict[attrName] == getattr(self, attrName))
+            for attrName in conditions.keys():
+                attrValueCheck = attrValueCheck and (conditions[attrName] == getattr(self, attrName))
             if attrValueCheck:
                 for attrName in setAttrDict.keys():
                     if hasattr(self, attrName) == False:

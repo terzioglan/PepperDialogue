@@ -1,10 +1,11 @@
 import copy, os
 
-def fixNameConflicts(filename,extension):
+def fixNameConflicts(file):
     i = 2
-    newFilename = copy.deepcopy(filename)
-    while(os.path.isfile(newFilename+extension)):
-        print("file %s exists, assigning new name to file" %(newFilename+extension))
-        newFilename = filename+"_("+str(i)+")" 
+    extension = '.'+file.split('.')[-1]
+    newFile = copy.deepcopy(file)
+    while(os.path.isfile(newFile)):
+        print("file %s exists, assigning new name to file" %(newFile))
+        newFile = file.replace(extension,'')+"_("+str(i)+")"+extension
         i+=1
-    return newFilename+extension
+    return newFile

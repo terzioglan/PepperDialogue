@@ -1,6 +1,6 @@
 # python2
 
-import time, sys, argparse
+import time, sys, shutil, os
 sys.path.append("../")
 from multiprocessing import Process, Queue
 from functools import partial
@@ -8,7 +8,8 @@ from threading import Thread
 
 from RecordingManagers import RecordingHandler, RecordingManager
 from sketchOne import RobotState, RecordingState, HumanState
-from config import *
+from testConfig import recordingTestConfig
+from utils import fixNameConflicts
 
 def startRecording(filename, extension, bitrate, microphoneArray):
     time.sleep(0.2)
@@ -16,9 +17,17 @@ def startRecording(filename, extension, bitrate, microphoneArray):
 def stopRecording():
     time.sleep(0.1)
     print("recording stopped")
-def fetchRecording():
-    time.sleep(0.3)
-    print("recording copied")
+
+def fetchRecording(sourceFile, destinationFile):
+    return shutil.copyfile(sourceFile, destinationFile)
+    # shutil.copyfile(source+filename, destination+defaultAudioName)
+    # newFile = fixNameConflicts(destination+defaultAudioName, '.'+filename.split('.')[-1])
+    # # os.rename(destination+filename,destination+newFilename)
+    # time.sleep(0.2)
+    # print("recording copied", source)
+    # # return destination+newFilename
+    # return newFile
+
 if __name__ == "__main__":
     '''
     Left here XXX
@@ -35,8 +44,8 @@ if __name__ == "__main__":
     robotState = RobotState()
     humanState = HumanState()
 
-    recordingManager = RecordingManager(method_startRecording=startRecording, method_stopRecording=stopRecording)
-    recordingHandler = RecordingHandler(method_fetchRecording=fetchRecording)
+    recordingManager = RecordingManager(method_startRecording=startRecording, method_stopRecording=stopRecording, config = recordingTestConfig)
+    recordingHandler = RecordingHandler(method_fetchRecording=fetchRecording, config=recordingTestConfig, noiseSuppressionHeader='./testAudio/hello-46355.mp3')
 
     thread_recordingManager = Thread(
         target = recordingManager.start,
@@ -49,14 +58,13 @@ if __name__ == "__main__":
 
     thread_recordingHandler = Thread(
         target = recordingHandler.start,
-        args = (queue_recordingsWithSpeech,
+        args = (recordingState,
+                queue_recordingsWithSpeech,
                 queue_recordingFilenameBuffer,
                 queue_transcriptions,),)
     thread_recordingHandler.start()
 
     try:
-  
-
         # TEST1: MULTIPLE SPEECH OVER ALL FILES TEST ##########################################
         # person speaks briefly for a second, then stops briefly then speaks again for a second for 10 times.
         # the recording handler should
@@ -67,8 +75,8 @@ if __name__ == "__main__":
         input("enter to continue")
         time.sleep(2.0)
         # speech detected
-        while not queue_recordingFilenameBuffer.empty():
-            print(recordingState.getAttribute("currentFile"))
+        for i in range(10):
+            # print(recordingState.getAttribute("currentFile"))
             print("speaking")
             humanState.setAttributes({
                 "speaking": True,
@@ -76,6 +84,7 @@ if __name__ == "__main__":
             })
             recordingState.setAttributes({
                 "containsSpeech": True,
+                "pipelineClear": False,
             })
             time.sleep(0.5)
             print("pause")
@@ -83,38 +92,22 @@ if __name__ == "__main__":
                 "speaking": False,
                 "lastSpoke": time.time(),
             })
-            time.sleep(3.0)
-        print(recordingState.getAttribute("currentFile"))
-        print("speaking")
-        humanState.setAttributes({
-            "speaking": True,
-            "lastSpoke": time.time(),
-        })
-        recordingState.setAttributes({
-            "containsSpeech": True,
-        })
-        time.sleep(0.5)
-        print("pause")
-        humanState.setAttributes({
-            "speaking": False,
-            "lastSpoke": time.time(),
-        })
-        time.sleep(3.0)
+            time.sleep(1.5)
         # end of speech
-        start = time.time()
-        while time.time() - start < 10:
-            if queue_transcriptions.empty():
-                print("queue_recordingsWithSpeech is empty")
-            else:
-                while not queue_transcriptions.empty():
-                    transcription = queue_recordingsWithSpeech.get()
-                    print("new transcription: ", transcription)
-                start = time.time()
-            time.sleep(2)
+        time.sleep(3.0)
+
+        if queue_transcriptions.empty():
+            print("queue_recordingsWithSpeech is empty")
+        else:
+            while not queue_transcriptions.empty():
+                transcription = queue_transcriptions.get()
+                print("new transcription: ", transcription)
+        time.sleep(2)
         print("MULTIPLE SPEECH OVER ALL FILES TEST OVER\n\n")
         #######################################################################################
 
     except KeyboardInterrupt:
         recordingManager.stop = True
+        recordingHandler.stop = True
         # thread_recordingManager.join()
         print("Exiting main loop.")
