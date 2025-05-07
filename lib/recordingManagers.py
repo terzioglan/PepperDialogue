@@ -1,8 +1,7 @@
 # python2
 import time, ffmpeg, os
 
-import config
-from utils import fixNameConflicts
+from lib.utils import fixNameConflicts
 
 class RecordingManager(object):
     '''
@@ -10,7 +9,7 @@ class RecordingManager(object):
     managing available filenames for the recording file buffer,
     and managing recording state object.
     '''
-    def __init__(self, method_startRecording, method_stopRecording, config=config):
+    def __init__(self, method_startRecording, method_stopRecording, config):
         self.stop = False
         self.configuration = config
         self.method_startRecording = method_startRecording
@@ -102,10 +101,10 @@ class RecordingHandler(object):
     '''
     def __init__(self, 
                  method_fetchRecording, 
+                 config,
                  denoising = True, 
                  noiseSuppressionHeader = "./noiseSuppressionHeader.wav", 
                  noiseSuppressionCharSet =  r'f\W*f\W*m\W*[pb]\W*g\W*',
-                 config = config,
                  ):
         if noiseSuppressionHeader is not None and noiseSuppressionCharSet is None:
             raise ValueError("You must provide a character set to be removed from transcriptions to use noise supperssion headers.")

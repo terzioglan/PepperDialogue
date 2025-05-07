@@ -1,14 +1,13 @@
 # python2
 
-import time, sys, argparse
+import time, sys
 sys.path.append("../")
-from multiprocessing import Process, Queue
-from functools import partial
+from multiprocessing import Queue
 from threading import Thread
 
-from RecordingManagers import RecordingHandler, RecordingManager
-from sketchOne import RobotState, RecordingState, HumanState
-from config import *
+from lib.recordingManagers import RecordingManager
+from lib.states import RobotState, RecordingState, HumanState
+from testConfig import recordingTestConfig
 
 def startRecording(filename, extension, bitrate, microphoneArray):
     time.sleep(0.2)
@@ -19,7 +18,6 @@ def stopRecording():
 
 if __name__ == "__main__":
     '''
-    Left here XXX
     ready to test if the recording loop can recording loop.
     currently it should:
     - make 5 second idle recordings and discard them if nothing
@@ -32,7 +30,10 @@ if __name__ == "__main__":
     robotState = RobotState()
     humanState = HumanState()
 
-    recordingManager = RecordingManager(method_startRecording=startRecording, method_stopRecording=stopRecording)
+    recordingManager = RecordingManager(
+        method_startRecording=startRecording,
+        method_stopRecording=stopRecording,
+        config=recordingTestConfig)
     
 
     thread_recordingManager = Thread(
@@ -74,6 +75,7 @@ if __name__ == "__main__":
         })
         recordingState.setAttributes({
             "containsSpeech": True,
+            "pipelineClear": False,
         })
         time.sleep(2.0)
         print("pause")
@@ -114,6 +116,7 @@ if __name__ == "__main__":
             })
             recordingState.setAttributes({
                 "containsSpeech": True,
+                "pipelineClear": False,
             })
             time.sleep(1.0)
             print("pause")
@@ -157,6 +160,7 @@ if __name__ == "__main__":
             })
             recordingState.setAttributes({
                 "containsSpeech": True,
+                "pipelineClear": False,
             })
             time.sleep(0.5)
             print("pause")
@@ -173,6 +177,7 @@ if __name__ == "__main__":
         })
         recordingState.setAttributes({
             "containsSpeech": True,
+            "pipelineClear": False,
         })
         time.sleep(0.5)
         print("pause")
@@ -212,6 +217,7 @@ if __name__ == "__main__":
         })
         recordingState.setAttributes({
             "containsSpeech": True,
+            "pipelineClear": False,
         })
         time.sleep(0.2)
         print("pause")

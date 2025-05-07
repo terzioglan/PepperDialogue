@@ -6,10 +6,9 @@ from multiprocessing import Process, Queue
 from functools import partial
 from threading import Thread
 
-from RecordingManagers import RecordingHandler, RecordingManager
-from sketchOne import RobotState, RecordingState, HumanState
+from lib.recordingManagers import RecordingHandler, RecordingManager
+from lib.states import RobotState, RecordingState, HumanState
 from testConfig import recordingTestConfig
-from utils import fixNameConflicts
 
 def startRecording(filename, extension, bitrate, microphoneArray):
     time.sleep(0.2)
@@ -30,7 +29,6 @@ def fetchRecording(sourceFile, destinationFile):
 
 if __name__ == "__main__":
     '''
-    Left here XXX
     ready to test if the recording loop can recording loop.
     currently it should:
     - make 5 second idle recordings and discard them if nothing
@@ -66,11 +64,13 @@ if __name__ == "__main__":
 
     try:
         # TEST1: MULTIPLE SPEECH OVER ALL FILES TEST ##########################################
-        # person speaks briefly for a second, then stops briefly then speaks again for a second for 10 times.
-        # the recording handler should
+        # person speaks briefly for half a second, then stops briefly then speaks again for a second for 10 times.
+        # the recording handler and managers should
         # - get the files as they appear in queue_recordingsWithSpeech
-        # - release the recording filenames as they are copied
-        # - transcribe them and put the transcriptions in the queue_transcriptions
+        # - release the recording filenames as they are copied and renamed
+        # - denoise the recordings in the local directory, 
+        # - transcribe them (transcription is just a placeholder for this test)
+        # - and put the transcriptions in the queue_transcriptions
         print("MULTIPLE SPEECH OVER ALL FILES TEST STARTING")
         input("enter to continue")
         time.sleep(2.0)
@@ -109,5 +109,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         recordingManager.stop = True
         recordingHandler.stop = True
-        # thread_recordingManager.join()
+        thread_recordingManager.join()
+        thread_recordingHandler.join()
         print("Exiting main loop.")

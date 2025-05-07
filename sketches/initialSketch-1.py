@@ -1,6 +1,6 @@
 import sys, time
 from threading import Lock
-from MutexHandler import MutexHandler
+from mutexHandler import MutexHandler
 
 class RobotState(MutexHandler):
     '''

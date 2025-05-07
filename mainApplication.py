@@ -9,9 +9,34 @@ from paramiko import SSHClient
 
 import qi
 
-from RecordingManagers import RecordingManager, RecordingHandler
-from sketchOne import RobotState, RecordingState, HumanState
-from config import *
+from lib.recordingManagers import RecordingManager, RecordingHandler
+from lib.states import RobotState, RecordingState, HumanState, EngagementState
+from config import recordingConfig
+
+
+class EngagementStateHandler(object):
+    '''
+    This will be the main handler for the engagement state.
+    It will be called periodically and take action if there is no active dialog or human is disengaging by any means.
+    '''
+    def __init__(self):
+        self.robotState = RobotState()
+        self.humanState = HumanState()
+        self.engagementState = EngagementState()
+
+
+def callback_speechDetected(robotState, humanState):
+    robotState.setAttributes({"recordingContainsSpeech": True, "canSpeak": False})
+    humanState.setAttributes({"speaking": True, "lastSpoke": time.time()})
+
+def callback_humanDetected(humanState):
+    humanState.setAttributes({"id": 1, "distance": 0.5})
+
+def callback_gazeDetected(humanState, condition):
+    if condition:
+        humanState.setAttributes({"gazeAwayOnset": -1})
+    else:
+        humanState.setAttributes({"gazeAwayOnset": time.time()})
 
 def callback_speechDetected(
         humanState,
@@ -37,33 +62,8 @@ def callback_speechDetected(
         else:
             print("Unknown value in callback_speechDetected: ", value)
 
-def queueTest():
-    transcriptionQueue = Queue(maxsize=100)
-    recordingFileQueue = Queue(maxsize=100)
-    recordingHandler = RecordingFileHandler()
-    recordingHandlerProcess = Process(
-        target = recordingHandler.start,
-        args = (recordingFileQueue,transcriptionQueue,),)
-    recordingHandlerProcess.start()
-
-    filename = "recording"
-    i = 0
-    try:
-        while True:
-            recordingFileQueue.put(filename+'_'+str(i))
-            while not transcriptionQueue.empty():
-                transcription = transcriptionQueue.get()
-                print("Got transcription: ", transcription)
-            i += 1
-            time.sleep(0.2)
-    except KeyboardInterrupt:
-        recordingHandler.stop = True
-        recordingHandlerProcess.join()
-        print("Exiting main loop.")
-
 def main(session):
     '''
-    Left here XXX
     ready to test if the recording loop can recording loop.
     currently it should:
     - make 5 second idle recordings and discard them if nothing
@@ -112,12 +112,15 @@ def main(session):
     robotState = RobotState()
     humanState = HumanState()
 
+
     recordingManager = RecordingManager(
         method_startRecording=alAudioRecorderService.startMicrophonesRecording, 
-        method_stopRecording=alAudioRecorderService.stopMicrophonesRecording)
+        method_stopRecording=alAudioRecorderService.stopMicrophonesRecording,
+        config = recordingConfig)
     
     recordingHandler = RecordingHandler(
         method_fetchRecording=scpClient.get,
+        config=recordingConfig,
         denoising=True,
         noiseSuppressionHeader = "./noiseSuppressionHeader.wav",
         noiseSuppressionCharset = r'f\W*f\W*m\W*[pb]\W*g\W*',
@@ -134,7 +137,8 @@ def main(session):
     
     recordingHandlerThread = Thread(
         target = recordingHandler.start,
-        args = (queue_recordingsWithSpeech,
+        args = (recordingState,
+                queue_recordingsWithSpeech,
                 queue_recordingFilenameBuffer,
                 queue_transcriptions,),)
     recordingHandlerThread.start()
