@@ -14,6 +14,7 @@ class RecordingManager(object):
         self.configuration = config
         self.method_startRecording = method_startRecording
         self.method_stopRecording = method_stopRecording
+        self.transcriptionClient = None
     
     # def startRecording(self,filename, microphoneArray = [1,1,1,1], bitrate = 16000):
     def startRecording(self,filename,):
@@ -105,6 +106,7 @@ class RecordingHandler(object):
                  denoising = True, 
                  noiseSuppressionHeader = "./noiseSuppressionHeader.wav", 
                  noiseSuppressionCharSet =  r'f\W*f\W*m\W*[pb]\W*g\W*',
+                 transcriptionClient = None,
                  ):
         if noiseSuppressionHeader is not None and noiseSuppressionCharSet is None:
             raise ValueError("You must provide a character set to be removed from transcriptions to use noise supperssion headers.")
@@ -114,6 +116,7 @@ class RecordingHandler(object):
         self.noiseSuppressionHeader = noiseSuppressionHeader
         self.noiseSuppressionHeaderCharacters = noiseSuppressionCharSet
         self.method_fetchRecording = method_fetchRecording
+        self.transcriptionClient = transcriptionClient
     
     def fetch(self, remotePath, localPath, filename):
         extension = filename.split('.')[-1]
@@ -183,9 +186,10 @@ class RecordingHandler(object):
             return recordingFile
 
     def requestTranscription(self, filename):
-        filename += '_transcribed'
-        time.sleep(2.0)
-        return filename
+        print("requesting transcription for: ", filename)
+        self.transcriptionClient.send({"audioFile":filename})
+        response = self.transcriptionClient.receive()
+        return response["transcription"]
     
     def start(self, recordingState, queue_recordingsWithSpeech, queue_recordingFilenameBuffer, queue_transcriptions,):
         while not self.stop:
@@ -199,10 +203,10 @@ class RecordingHandler(object):
                     if self.denoising:
                         targetFile = self.denoise(targetFile)
                     transcription = self.requestTranscription(targetFile)
-                    queue_transcriptions.put({filename:transcription})
+                    queue_transcriptions.put({targetFile:transcription})
                     if queue_recordingsWithSpeech.empty():
-                        recordingState.getSetAttributes(conditions={"containsSpeech": False}, setAttrDict={"pipelineClear": True})
-                        print("pipeline clear")
+                        if recordingState.getSetAttributes(conditions={"containsSpeech": False}, setAttrDict={"pipelineClear": True}):
+                            print("pipeline clear")
                     else:
                         print("pipeline NOT clear")
 

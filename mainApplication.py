@@ -1,7 +1,7 @@
 # python2
 
-import time, sys, argparse
-from multiprocessing import Process, Queue
+import time, sys, argparse, subprocess
+from multiprocessing import Queue
 from functools import partial
 from threading import Thread
 from scp import SCPClient
@@ -11,23 +11,24 @@ import qi
 
 from lib.recordingManagers import RecordingManager, RecordingHandler
 from lib.states import RobotState, RecordingState, HumanState, EngagementState
-from config import recordingConfig
+from lib.serverClient import Client
+from config import recordingConfig, whisperConfig
 
 
-class EngagementStateHandler(object):
-    '''
-    This will be the main handler for the engagement state.
-    It will be called periodically and take action if there is no active dialog or human is disengaging by any means.
-    '''
-    def __init__(self):
-        self.robotState = RobotState()
-        self.humanState = HumanState()
-        self.engagementState = EngagementState()
+# class EngagementStateHandler(object):
+#     '''
+#     This will be the main handler for the engagement state.
+#     It will be called periodically and take action if there is no active dialog or human is disengaging by any means.
+#     '''
+#     def __init__(self):
+#         self.robotState = RobotState()
+#         self.humanState = HumanState()
+#         self.engagementState = EngagementState()
 
 
-def callback_speechDetected(robotState, humanState):
-    robotState.setAttributes({"recordingContainsSpeech": True, "canSpeak": False})
-    humanState.setAttributes({"speaking": True, "lastSpoke": time.time()})
+# def callback_speechDetected(robotState, humanState):
+#     robotState.setAttributes({"recordingContainsSpeech": True, "canSpeak": False})
+#     humanState.setAttributes({"speaking": True, "lastSpoke": time.time()})
 
 def callback_humanDetected(humanState):
     humanState.setAttributes({"id": 1, "distance": 0.5})
@@ -113,6 +114,22 @@ def main(session):
     humanState = HumanState()
 
 
+    # Server setup for local Whisper model ################################################################
+    try:
+        # logFileName = fixNameConflicts(DEFAULT_LOCAL_WHISPER_CONFIG.whisper_server_logs_path[:-4]+"_"+args.logID,".log")
+        # whisper_server_logs = open(logFileName, "w")
+        whisperProcess = subprocess.Popen(
+            [whisperConfig.WHISPER_ENV,
+            "./lib/whisperLocal.py",
+            "./lib/"+whisperConfig.WHISPER_MODEL_FILE],
+            # stdout=whisper_server_logs,       
+            # stderr=whisper_server_logs   
+            )
+    except Exception as e:
+        print("cannot start whisper sub process", e)
+        sys.exit(1)
+    whisperClient = Client(host="localhost", port=whisperConfig.TCP_PORT, size=whisperConfig.TCP_DATA_SIZE)
+    #####################################################################################################
     recordingManager = RecordingManager(
         method_startRecording=alAudioRecorderService.startMicrophonesRecording, 
         method_stopRecording=alAudioRecorderService.stopMicrophonesRecording,
@@ -124,6 +141,7 @@ def main(session):
         denoising=True,
         noiseSuppressionHeader = "./noiseSuppressionHeader.wav",
         noiseSuppressionCharset = r'f\W*f\W*m\W*[pb]\W*g\W*',
+        transcriptionClient=whisperClient,
     )
 
     recordingManagerThread = Thread(
@@ -171,5 +189,19 @@ if __name__ == "__main__":
     except RuntimeError:
         print("Unable to connect to pepper")
         sys.exit(0)
-
+    finally:
+            engagementHandler.eyesReset()  # Reset eyes
+            alTabletService.hideImage()     # Clear tablet
+            engagementHandler.blinkingControl.setEnabled(True)
+            try:
+                whisper_server_logs.close()
+                whisperProcess.terminate()             # Stop the server
+                whisperProcess.wait()                  # Ensure the process is fully stopped
+                realtimeProcess.terminate()
+                realtimeProcess.wait()
+                realtime_server_logs.close()
+                statusTracker.exit()
+            except Exception as e:
+                pass
+            sys.exit(0)
     recordingTest(session)

@@ -12,6 +12,7 @@ from testConfig import recordingTestConfig
 def startRecording(filename, extension, bitrate, microphoneArray):
     time.sleep(0.2)
     print("recording started")
+
 def stopRecording():
     time.sleep(0.1)
     print("recording stopped")
@@ -20,7 +21,7 @@ if __name__ == "__main__":
     '''
     ready to test if the recording loop can recording loop.
     currently it should:
-    - make 5 second idle recordings and discard them if nothing
+    - make 5-second idle recordings and discard them if there is no speech in it.
     - if speech detected, record until speech is over + padding seconds and put the filename into
     a queue for processing.
     '''

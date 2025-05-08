@@ -13,6 +13,7 @@ from testConfig import recordingTestConfig
 def startRecording(filename, extension, bitrate, microphoneArray):
     time.sleep(0.2)
     print("recording started")
+
 def stopRecording():
     time.sleep(0.1)
     print("recording stopped")
@@ -26,6 +27,11 @@ def fetchRecording(sourceFile, destinationFile):
     # print("recording copied", source)
     # # return destination+newFilename
     # return newFile
+
+def requestTranscription(filename):
+    filename += '_transcribed'
+    time.sleep(2.0)
+    return filename
 
 if __name__ == "__main__":
     '''
@@ -42,8 +48,17 @@ if __name__ == "__main__":
     robotState = RobotState()
     humanState = HumanState()
 
-    recordingManager = RecordingManager(method_startRecording=startRecording, method_stopRecording=stopRecording, config = recordingTestConfig)
-    recordingHandler = RecordingHandler(method_fetchRecording=fetchRecording, config=recordingTestConfig, noiseSuppressionHeader='./testAudio/hello-46355.mp3')
+    recordingManager = RecordingManager(
+        method_startRecording=startRecording,
+        method_stopRecording=stopRecording,
+        config = recordingTestConfig,
+        )
+    recordingHandler = RecordingHandler(
+        method_fetchRecording=fetchRecording,
+        config=recordingTestConfig,
+        noiseSuppressionHeader='./testAudio/hello-46355.mp3',
+        )
+    recordingHandler.requestTranscription = requestTranscription
 
     thread_recordingManager = Thread(
         target = recordingManager.start,

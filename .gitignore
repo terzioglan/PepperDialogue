@@ -1,5 +1,8 @@
 .DS_Store
 *.pyc
+*.pth
 __pycache__/
 /testCode/testLocalAudio/*
 !/testCode/testLocalAudio/.gitkeep
+/audioRecordings/*
+!/audioRecordings/.gitkeep
