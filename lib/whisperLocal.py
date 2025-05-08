@@ -22,7 +22,6 @@ class WhisperAPI(object):
 
 if __name__ == "__main__":
     whisperApi = WhisperAPI(whisperModelPath=configuration.WHISPER_MODEL_FILE,)
-
     whisperLocalServer = Server(host="localhost", port=configuration.TCP_PORT, size=configuration.TCP_DATA_SIZE)
 
     while True:

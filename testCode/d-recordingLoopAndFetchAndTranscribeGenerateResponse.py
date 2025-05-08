@@ -7,7 +7,8 @@ from threading import Thread
 
 from lib.recordingManagers import RecordingHandler, RecordingManager
 from lib.states import RobotState, RecordingState, HumanState
-from testConfig import recordingTestConfig, whisperConfig
+from testConfig import recordingTestConfig
+from config import whisperConfig, realtimeConfig
 from lib.serverClient import Client
 
 def startRecording(filename, extension, bitrate, microphoneArray):
@@ -48,8 +49,8 @@ if __name__ == "__main__":
         # whisper_server_logs = open(logFileName, "w")
         whisperProcess = subprocess.Popen(
             [whisperConfig.WHISPER_ENV,
-            "../lib/whisperLocal.py",
-            "../lib/"+whisperConfig.WHISPER_MODEL_FILE],
+            "../lib/whisperLocal.py",],
+            # "../lib/"+whisperConfig.WHISPER_MODEL_FILE],
             # stdout=whisper_server_logs,       
             # stderr=whisper_server_logs   
             )
@@ -57,6 +58,22 @@ if __name__ == "__main__":
         print("cannot start whisper sub process", e)
         sys.exit(1)
     whisperClient = Client(host="localhost", port=whisperConfig.TCP_PORT, size=whisperConfig.TCP_DATA_SIZE)
+    #####################################################################################################
+
+    # Server setup for local realtime model ################################################################
+    try:
+        # logFileName = fixNameConflicts(DEFAULT_LOCAL_WHISPER_CONFIG.whisper_server_logs_path[:-4]+"_"+args.logID,".log")
+        # whisper_server_logs = open(logFileName, "w")
+        realtimeProcess = subprocess.Popen(
+            ["python", "../lib/realtimeWebsocket.py",],
+            # "../lib/"+realtimeConfig.WHISPER_MODEL_FILE],
+            # stdout=whisper_server_logs,       
+            # stderr=whisper_server_logs   
+            )
+    except Exception as e:
+        print("cannot start realtime sub process", e)
+        sys.exit(1)
+    realtimeClient = Client(host="localhost", port=realtimeConfig.TCP_PORT, size=realtimeConfig.TCP_DATA_SIZE)
     #####################################################################################################
 
     recordingManager = RecordingManager(
@@ -101,7 +118,7 @@ if __name__ == "__main__":
         input("enter to continue")
         time.sleep(2.0)
         # speech detected
-        for i in range(10):
+        for i in range(5):
             # print(recordingState.getAttribute("currentFile"))
             print("speaking")
             humanState.setAttributes({
@@ -126,8 +143,15 @@ if __name__ == "__main__":
             print("queue_recordingsWithSpeech is empty")
         else:
             while not queue_transcriptions.empty():
-                transcription = queue_transcriptions.get()
-                print("new transcription: ", transcription)
+                transcriptions = queue_transcriptions.get()
+                print("new transcription: ", transcriptions)
+                for key in transcriptions.keys():
+                    transcription = transcriptions[key]
+                    print(f"requesting response for transcription: {transcription}")
+                    realtimeClient.send({"message":transcription})
+                    response = realtimeClient.receive()
+                    print("response received: ", response["message"])
+                time.sleep(0.2)
         time.sleep(2)
         print("MULTIPLE SPEECH OVER ALL FILES TEST OVER\n\n")
         #######################################################################################

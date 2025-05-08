@@ -9,18 +9,17 @@ class RecordingManager(object):
     managing available filenames for the recording file buffer,
     and managing recording state object.
     '''
-    def __init__(self, method_startRecording, method_stopRecording, config):
+    def __init__(self, method_startRecording, method_stopRecording, config, verbose = False):
         self.stop = False
         self.configuration = config
         self.method_startRecording = method_startRecording
         self.method_stopRecording = method_stopRecording
         self.transcriptionClient = None
+        self.verbose = verbose
     
     # def startRecording(self,filename, microphoneArray = [1,1,1,1], bitrate = 16000):
     def startRecording(self,filename,):
         try:
-            # print("Recording started...")
-            # self.recordingService.startMicrophonesRecording(SOURCE_AUDIO_FILE_PATH + filename, "wav", bitrate, microphoneArray)
             self.method_startRecording(self.configuration.SOURCE_AUDIO_FILE_PATH + filename, "wav", bitrate = 16000, microphoneArray = [1,1,1,1])
         except Exception as e:
             print("couldn't start recording: ", e)
@@ -77,10 +76,10 @@ class RecordingManager(object):
                                     pass
                     self.stopRecording()
                     if recordingState.getAttribute('containsSpeech'):
-                        print("accepting recording")
+                        if self.verbose: print("accepting recording")
                         self.acceptRecording(queue_recordingsWithSpeech, currentFilename)
                     else:
-                        print("discarding recording")
+                        if self.verbose: print("discarding recording")
                         self.discardRecording(queue_recordingFilenameBuffer, currentFilename)
 
                     recordingState.setAttributes({
@@ -107,6 +106,7 @@ class RecordingHandler(object):
                  noiseSuppressionHeader = "./noiseSuppressionHeader.wav", 
                  noiseSuppressionCharSet =  r'f\W*f\W*m\W*[pb]\W*g\W*',
                  transcriptionClient = None,
+                 verbose = False,
                  ):
         if noiseSuppressionHeader is not None and noiseSuppressionCharSet is None:
             raise ValueError("You must provide a character set to be removed from transcriptions to use noise supperssion headers.")
@@ -117,6 +117,7 @@ class RecordingHandler(object):
         self.noiseSuppressionHeaderCharacters = noiseSuppressionCharSet
         self.method_fetchRecording = method_fetchRecording
         self.transcriptionClient = transcriptionClient
+        self.verbose = verbose
     
     def fetch(self, remotePath, localPath, filename):
         extension = filename.split('.')[-1]
@@ -186,7 +187,7 @@ class RecordingHandler(object):
             return recordingFile
 
     def requestTranscription(self, filename):
-        print("requesting transcription for: ", filename)
+        if self.verbose: print("requesting transcription for: ", filename)
         self.transcriptionClient.send({"audioFile":filename})
         response = self.transcriptionClient.receive()
         return response["transcription"]
@@ -206,9 +207,9 @@ class RecordingHandler(object):
                     queue_transcriptions.put({targetFile:transcription})
                     if queue_recordingsWithSpeech.empty():
                         if recordingState.getSetAttributes(conditions={"containsSpeech": False}, setAttrDict={"pipelineClear": True}):
-                            print("pipeline clear")
+                            if self.verbose: print("pipeline clear")
                     else:
-                        print("pipeline NOT clear")
+                        if self.verbose: print("pipeline NOT clear")
 
             except Exception as e:
                 print("Error: ", e)

@@ -7,7 +7,8 @@ from threading import Thread
 
 from lib.recordingManagers import RecordingHandler, RecordingManager
 from lib.states import RobotState, RecordingState, HumanState
-from testConfig import recordingTestConfig, whisperConfig
+from testConfig import recordingTestConfig
+from config import whisperConfig
 from lib.serverClient import Client
 
 def startRecording(filename, extension, bitrate, microphoneArray):
@@ -48,8 +49,8 @@ if __name__ == "__main__":
         # whisper_server_logs = open(logFileName, "w")
         whisperProcess = subprocess.Popen(
             [whisperConfig.WHISPER_ENV,
-            "../lib/whisperLocal.py",
-            "../lib/"+whisperConfig.WHISPER_MODEL_FILE],
+            "../lib/whisperLocal.py",],
+            # "../lib/"+whisperConfig.WHISPER_MODEL_FILE],
             # stdout=whisper_server_logs,       
             # stderr=whisper_server_logs   
             )
@@ -63,12 +64,14 @@ if __name__ == "__main__":
         method_startRecording=startRecording,
         method_stopRecording=stopRecording,
         config = recordingTestConfig,
+        verbose=True,
         )
     recordingHandler = RecordingHandler(
         method_fetchRecording=fetchRecording,
         config=recordingTestConfig,
         noiseSuppressionHeader='./testAudio/hello-46355.mp3',
         transcriptionClient=whisperClient,
+        verbose=True,
         )
 
     thread_recordingManager = Thread(

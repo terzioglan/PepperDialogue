@@ -1,8 +1,8 @@
 import json, queue, websocket, threading, time, sys
+sys.path.append("../")
 from lib.utils import GptCostTracker
 from lib.serverClient import Server
-
-from configuration import configuration
+from config import realtimeConfig as configuration
 
 class RealtimeAPI(object):
     def __init__(self, model, apiKey, instructions, temperature):
@@ -45,9 +45,11 @@ class RealtimeAPI(object):
         elif data['type'] == "session.updated":
             print(data)
             self.sessionUpdated = True
+        else:
+            print(data)
             
     def runWebsocket(self):
-        ''' Establish the websocket communication. '''
+        ''' Establish the websocket communication.'''
         self.webSocket = websocket.WebSocketApp(
                 self.url,
                 header=self.headers,
@@ -61,8 +63,8 @@ class RealtimeAPI(object):
             self.webSocket.close()
         self.stopEvent.set()
 
-    def requestUserResponse(self, userInput):
-        ''' userInput text is sent to Realtime server, and the server is asked for a response'''                
+    def requestResponse(self, input):
+        ''' input text is sent to Realtime server, and the server is asked for a response'''                
         # Create the conversation item
         conversation_event = {
             "type": "conversation.item.create",
@@ -72,7 +74,7 @@ class RealtimeAPI(object):
                 "content": [
                     {
                         "type": "input_text",
-                        "text": userInput # Audio transcription by local whisper
+                        "text": input # Audio transcription by local whisper
                     }
                 ]
             }
@@ -90,15 +92,15 @@ class RealtimeAPI(object):
 
 if __name__ == "__main__":
     realtimeWebsocket = RealtimeAPI(
-        model=configuration.realtimeModel,
-        apiKey=configuration.api_key,
-        instructions=configuration.instructions,
-        temperature=configuration.temperature,
+        model=configuration.MODEL,
+        apiKey=configuration.API_KEY,
+        instructions=configuration.INSTRUCTIONS,
+        temperature=configuration.TEMPERATURE,
         )
     websocketThread = threading.Thread(target=realtimeWebsocket.runWebsocket)
     websocketThread.start()
 
-    realtimeLocalServer = Server(host="localhost", port=configuration.tcp_port_realtime)
+    realtimeLocalServer = Server(host="localhost", port=configuration.TCP_PORT, size=configuration.TCP_DATA_SIZE)
 
     while(not (realtimeWebsocket.sessionCreated and realtimeWebsocket.sessionUpdated)):
         print("Waiting to initialize session.")
@@ -106,8 +108,8 @@ if __name__ == "__main__":
 
     while True:
         try:
-            data = realtimeLocalServer.receive(configuration.tcp_data_size)
-            realtimeWebsocket.requestUserResponse(data["message"])
+            data = realtimeLocalServer.receive(configuration.TCP_DATA_SIZE)
+            realtimeWebsocket.requestResponse(data["message"])
             while(realtimeWebsocket.serverResponseQueue.empty()):
                 pass
             realtimeLocalServer.send({"message":realtimeWebsocket.serverResponseQueue.get()})
