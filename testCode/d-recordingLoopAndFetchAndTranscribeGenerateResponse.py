@@ -10,6 +10,7 @@ from lib.states import RobotState, RecordingState, HumanState
 from testConfig import recordingTestConfig
 from config import whisperConfig, realtimeConfig
 from lib.serverClient import Client
+from lib.utils import fixNameConflicts
 
 def startRecording(filename, extension, bitrate, microphoneArray):
     time.sleep(0.2)
@@ -45,14 +46,14 @@ if __name__ == "__main__":
 
     # Server setup for local Whisper model ################################################################
     try:
-        # logFileName = fixNameConflicts(DEFAULT_LOCAL_WHISPER_CONFIG.whisper_server_logs_path[:-4]+"_"+args.logID,".log")
-        # whisper_server_logs = open(logFileName, "w")
+        whisperLogName = fixNameConflicts("./logs/whisper_log.log")
+        whisperLog = open(whisperLogName, "w")
         whisperProcess = subprocess.Popen(
             [whisperConfig.WHISPER_ENV,
             "../lib/whisperLocal.py",],
             # "../lib/"+whisperConfig.WHISPER_MODEL_FILE],
-            # stdout=whisper_server_logs,       
-            # stderr=whisper_server_logs   
+            stdout=whisperLog,       
+            stderr=whisperLog,   
             )
     except Exception as e:
         print("cannot start whisper sub process", e)
@@ -62,13 +63,12 @@ if __name__ == "__main__":
 
     # Server setup for local realtime model ################################################################
     try:
-        # logFileName = fixNameConflicts(DEFAULT_LOCAL_WHISPER_CONFIG.whisper_server_logs_path[:-4]+"_"+args.logID,".log")
-        # whisper_server_logs = open(logFileName, "w")
+        realtimeLogName = fixNameConflicts("./logs/realtime_log.log")
+        realtimeLog = open(realtimeLogName, "w")
         realtimeProcess = subprocess.Popen(
             ["python", "../lib/realtimeWebsocket.py",],
-            # "../lib/"+realtimeConfig.WHISPER_MODEL_FILE],
-            # stdout=whisper_server_logs,       
-            # stderr=whisper_server_logs   
+            stdout=realtimeLog,       
+            stderr=realtimeLog   
             )
     except Exception as e:
         print("cannot start realtime sub process", e)

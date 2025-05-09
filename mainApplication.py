@@ -16,8 +16,11 @@ from lib.pepperProxy import PepperProxy
 from lib.utils import fixNameConflicts
 from config import recordingConfig, whisperConfig, realtimeConfig
 
-def callback_humanDetected(humanState):
-    humanState.setAttributes({"id": 1, "distance": 0.5})
+def callback_humanDetected(humanState, value):
+    humanState.setAttributes({"id": value[1][0][0], "distance": value[1][0][1]})
+ 
+def callback_humanLeft(humanState, value):
+    humanState.setAttributes({"id": -1, "distance": -1,"gazeAwayOnset": time.time(), "gazeOnRobot": False})
 
 def callback_gazeDetected(humanState, value):
     if value == []:
@@ -31,7 +34,10 @@ def callback_speechDetected(
         humanState,
         recordingState,
         pepperProxy,
+        robotState,
         value):
+        if robotState.getAttribute("speaking"):
+            return
         if value == "SpeechDetected":
             pepperProxy.cueSpeechDetected()
             humanState.setAttributes({
@@ -51,60 +57,50 @@ def callback_speechDetected(
         else:
             print("Unknown value in callback_speechDetected: ", value)
 
+def processInputAndSpeak(input, pepperProxy, robotState, realtimeClient):
+    pepperProxy.cueBusy()
+    robotState.setAttributes({"speaking": True,"canListen": False, "lastSpoke": time.time()})
+    realtimeClient.send({"message":input})
+    response = realtimeClient.receive()
+    print("response received: ", response["message"])
+    pepperProxy.speak(response["message"])
+    robotState.setAttributes({"speaking": False,"canListen": True, "lastSpoke": time.time()})
+    pepperProxy.cueIdle()
+
 def main(session):
     '''
     this is everything.
     '''
     # robot-related initializations ##########################################################################
-    alMemoryService               = session.service("ALMemory")
-    alBasicAwarenessService       = session.service("ALBasicAwareness")
-    alSpeechRecognitionService    = session.service("ALSpeechRecognition")
-    alAudioRecorderService        = session.service("ALAudioRecorder")
-    alLedService                  = session.service("ALLeds")
-    alAnimatedSpeechService       = session.service("ALAnimatedSpeech")
-    alPostureService              = session.service("ALRobotPosture")
-    alMotionService               = session.service("ALMotion")
-    pepperProxy = PepperProxy(
-        alAnimatedSpeechService,
-        alLedService,
-        alPostureService,
-        alMotionService,
-        )
+    pepperProxy = PepperProxy(session,)
 
-    alSpeechRecognitionService.pause(True)                            # Stop the Speech Recognition system before setting the parameters.
-    alSpeechRecognitionService.removeAllContext()                     # Remove all context present if any.
-    alSpeechRecognitionService.setLanguage('English')                 # Set Language to English
-    # vocabulary = ['Pepper']
-    # alSpeechRecognitionService.setVocabulary(vocabulary, False)       # Set vocab sets ALSpeechRecognition/ActiveListening to process speech.
-    alSpeechRecognitionService.setVocabulary(['Pepper'], False)       # Set vocab sets ALSpeechRecognition/ActiveListening to process speech.
-    alSpeechRecognitionService.setParameter('Sensitivity', 1.0)       # Sensitivity [0.0, 1.0].
-    alSpeechRecognitionService.pause(False)                           # Restart the Speech Recognition system for settings to take effect.
-    
-    alBasicAwarenessService.setEnabled(True)
-    alBasicAwarenessService.setEngagementMode("FullyEngaged")
-    
-    alAudioRecorderService.stopMicrophonesRecording()                  # Stop all microphones if any.
-    
     recordingState = RecordingState()
     robotState = RobotState()
     humanState = HumanState()
 
-    speechSubscriber = alMemoryService.subscriber("ALSpeechRecognition/Status")
+    speechSubscriber = pepperProxy.memoryService.subscriber("ALSpeechRecognition/Status")
     speechSubscriber.signal.connect(partial(
         callback_speechDetected,
         humanState,
         recordingState,
         pepperProxy,
+        robotState,
         ))
-    gazeSubscriber = alMemoryService.subscriber("GazeAnalysis/PeopleLookingAtRobot")
+    gazeSubscriber = pepperProxy.memoryService.subscriber("GazeAnalysis/PeopleLookingAtRobot")
     gazeSubscriber.signal.connect(partial(
         callback_gazeDetected,
         humanState,
         ))
-
-    # alMemoryService.subscriber("PeoplePerception/PeopleDetected")
-    # alMemoryService.subscriber("PeoplePerception/JustLeft")
-
+    humanDetectedSubscriber = pepperProxy.memoryService.subscriber("PeoplePerception/PeopleDetected")
+    humanDetectedSubscriber.signal.connect(partial(
+        callback_humanDetected,
+        humanState,
+        ))
+    humanLeftSubscriber = pepperProxy.memoryService.subscriber("PeoplePerception/JustLeft")
+    humanLeftSubscriber.signal.connect(partial(
+        callback_humanLeft,
+        humanState,
+        ))
 
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys()
@@ -122,8 +118,8 @@ def main(session):
         whisperLog = open(whisperLogName, "w")
         whisperProcess = subprocess.Popen(
             [whisperConfig.WHISPER_ENV,
-            "./lib/whisperLocal.py",
-            "./lib/"+whisperConfig.WHISPER_MODEL_FILE],
+            "./lib/whisperLocal.py",],
+            # "./lib/"+whisperConfig.WHISPER_MODEL_FILE],
             stdout=whisperLog,       
             stderr=whisperLog   
             )
@@ -132,7 +128,7 @@ def main(session):
         sys.exit(1)
     whisperClient = Client(host="localhost", port=whisperConfig.TCP_PORT, size=whisperConfig.TCP_DATA_SIZE)
     ##########################################################################################################
-    # OpenAI Realtime server websocke setup  #################################################################
+    # OpenAI Realtime server websocket setup  ################################################################
     try:
         realtimeLogName = fixNameConflicts("./logs/realtime_log.log")
         realtimeLog = open(realtimeLogName, "w")
@@ -152,8 +148,8 @@ def main(session):
     queue_transcriptions = Queue(maxsize=100)
 
     recordingManager = RecordingManager(
-        method_startRecording=alAudioRecorderService.startMicrophonesRecording, 
-        method_stopRecording=alAudioRecorderService.stopMicrophonesRecording,
+        method_startRecording=pepperProxy.audioRecorderService.startMicrophonesRecording, 
+        method_stopRecording=pepperProxy.audioRecorderService.stopMicrophonesRecording,
         config = recordingConfig,
         verbose=False,
         )
@@ -170,19 +166,12 @@ def main(session):
 
     recordingManagerThread = Thread(
         target = recordingManager.start,
-        args = (recordingState,
-                robotState,
-                humanState,
-                queue_recordingsWithSpeech,
-                queue_recordingFilenameBuffer,),)
+        args = (recordingState, robotState, humanState, queue_recordingsWithSpeech, queue_recordingFilenameBuffer,),)
     recordingManagerThread.start()
     
     recordingHandlerThread = Thread(
         target = recordingHandler.start,
-        args = (recordingState,
-                queue_recordingsWithSpeech,
-                queue_recordingFilenameBuffer,
-                queue_transcriptions,),)
+        args = (recordingState, queue_recordingsWithSpeech, queue_recordingFilenameBuffer, queue_transcriptions,),)
     recordingHandlerThread.start()
 
     #############################################################################################################################
@@ -191,26 +180,28 @@ def main(session):
     try:
         currentHumanUtterance = ""
         while True:
-            if not queue_transcriptions.empty():
-                print("Received transcription from queue.")
-                while not queue_transcriptions.empty():
-                    transcriptions = queue_transcriptions.get()
-                    for key in transcriptions.keys():
-                        currentHumanUtterance = currentHumanUtterance + " " + transcriptions[key]
-            else:
-                currentHumanUtterance = currentHumanUtterance.strip()
-                if currentHumanUtterance != "" and recordingState.getAttribute("pipelineClear"):
-                    print("Generating response for transcription: ", currentHumanUtterance)
-                    pepperProxy.cueBusy()
-                    robotState.setAttributes({"speaking": True,"canListen": False, "lastSpoke": time.time()})
-                    realtimeClient.send({"message":currentHumanUtterance})
-                    response = realtimeClient.receive()
-                    print("response received: ", response["message"])
-                    pepperProxy.speak(response["message"])
-                    currentHumanUtterance = ""
-                    robotState.setAttributes({"speaking": False,"canListen": True, "lastSpoke": time.time()})
-                    pepperProxy.cueIdle()
-            time.sleep(0.1)
+            print("waiting for gaze on robot")
+            while not humanState.getAttribute("gazeOnRobot"):
+                time.sleep(0.2)
+            if recordingState.getAttribute("pipelineClear"):
+                processInputAndSpeak("<LOOKING>", pepperProxy, robotState, realtimeClient)
+            while humanState.getAttribute("id") != -1:
+                if not queue_transcriptions.empty():
+                    print("Received transcription from queue.")
+                    while not queue_transcriptions.empty():
+                        transcriptions = queue_transcriptions.get()
+                        for key in transcriptions.keys():
+                            currentHumanUtterance = currentHumanUtterance + " " + transcriptions[key]
+                elif recordingState.getAttribute("pipelineClear"):
+                    currentHumanUtterance = currentHumanUtterance.strip()
+                    if currentHumanUtterance != "":
+                        print("Generating response for transcription: ", currentHumanUtterance)
+                        processInputAndSpeak(currentHumanUtterance, pepperProxy, robotState, realtimeClient)
+                        currentHumanUtterance = ""
+                    elif (time.time() - humanState.getAttribute("lastSpoke") > 20 ) and (time.time() - robotState.getAttribute("lastSpoke")) > 10:
+                        print("silence timeout")
+                        processInputAndSpeak("<LONG_SILENCE>", pepperProxy, robotState, realtimeClient)
+                time.sleep(0.1)
     #############################################################################################################################
     #############################################################################################################################
     except KeyboardInterrupt:
@@ -225,8 +216,9 @@ def main(session):
         realtimeProcess.wait()
         whisperLog.close()
         realtimeLog.close()
-        pepperProxy.eyesReset()
-        alAudioRecorderService.stopMicrophonesRecording()
+        whisperClient.exit()
+        realtimeClient.exit()
+        pepperProxy.exit()
         print("Exiting main loop.")
     finally:
         sys.exit(0)
