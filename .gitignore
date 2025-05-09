@@ -9,3 +9,4 @@ __pycache__/
 !/audioRecordings/.gitkeep
 /logs/*
 !/logs/.gitkeep
+*.log

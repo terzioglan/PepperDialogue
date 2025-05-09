@@ -1,5 +1,5 @@
 # python2
-import time, ffmpeg, os
+import time, ffmpeg, os, re
 
 from lib.utils import fixNameConflicts
 
@@ -20,7 +20,7 @@ class RecordingManager(object):
     # def startRecording(self,filename, microphoneArray = [1,1,1,1], bitrate = 16000):
     def startRecording(self,filename,):
         try:
-            self.method_startRecording(self.configuration.SOURCE_AUDIO_FILE_PATH + filename, "wav", bitrate = 16000, microphoneArray = [1,1,1,1])
+            self.method_startRecording(self.configuration.SOURCE_AUDIO_FILE_PATH + filename, "wav",  16000, [1,1,1,1])
         except Exception as e:
             print("couldn't start recording: ", e)
         else:
@@ -48,14 +48,21 @@ class RecordingManager(object):
         while not self.stop:
             padding = False
             if not queue_recordingFilenameBuffer.empty():
-                currentFilename = queue_recordingFilenameBuffer.get()
-                recordingState.setAttributes({
-                    "currentFile": currentFilename,
-                    "containsSpeech": False,
-                    })
-                
+                # currentFilename = queue_recordingFilenameBuffer.get()
+                # recordingState.setAttributes({
+                #     "currentFile": currentFilename,
+                #     "containsSpeech": False,
+                #     })
                 if robotState.getAttribute('canListen'):
+                    # recordingState.setAttributes({
+                    #     "startTime": time.time(),
+                    #     "recording": True,
+                    #     })
+                    
+                    currentFilename = queue_recordingFilenameBuffer.get()
                     recordingState.setAttributes({
+                        "currentFile": currentFilename,
+                        "containsSpeech": False,
                         "startTime": time.time(),
                         "recording": True,
                         })
@@ -76,10 +83,10 @@ class RecordingManager(object):
                                     pass
                     self.stopRecording()
                     if recordingState.getAttribute('containsSpeech'):
-                        if self.verbose: print("accepting recording")
+                        if self.verbose: print("accepting recording", currentFilename)
                         self.acceptRecording(queue_recordingsWithSpeech, currentFilename)
                     else:
-                        if self.verbose: print("discarding recording")
+                        if self.verbose: print("discarding recording", currentFilename)
                         self.discardRecording(queue_recordingFilenameBuffer, currentFilename)
 
                     recordingState.setAttributes({
@@ -91,6 +98,7 @@ class RecordingManager(object):
             else:
                 print("recording buffer filename queue empty!")
                 time.sleep(0.5)
+        print("Recording manager stopped.")
 
 class RecordingHandler(object):
     '''
@@ -106,7 +114,7 @@ class RecordingHandler(object):
                  noiseSuppressionHeader = "./noiseSuppressionHeader.wav", 
                  noiseSuppressionCharSet =  r'f\W*f\W*m\W*[pb]\W*g\W*',
                  transcriptionClient = None,
-                 verbose = False,
+                 verbose = True,
                  ):
         if noiseSuppressionHeader is not None and noiseSuppressionCharSet is None:
             raise ValueError("You must provide a character set to be removed from transcriptions to use noise supperssion headers.")
@@ -120,17 +128,18 @@ class RecordingHandler(object):
         self.verbose = verbose
     
     def fetch(self, remotePath, localPath, filename):
-        extension = filename.split('.')[-1]
-        copiedFile = self.method_fetchRecording(
+        extension = "."+filename.split('.')[-1]
+        defaultNewFilename = self.configuration.DEFAULT_NEW_AUDIO_FILE_NAME+extension
+        copied = self.method_fetchRecording(
             remotePath+filename, 
-            localPath+self.configuration.DEFAULT_NEW_AUDIO_FILE_NAME+extension)
-        newFile = fixNameConflicts(localPath+filename)
-        os.rename(copiedFile,
-                  newFile)
+            localPath+defaultNewFilename)
+        uniqueFilename = fixNameConflicts(localPath+filename)
+        os.rename(localPath+defaultNewFilename,
+                  uniqueFilename)
         # print("here")
         # os.rename(localPath+filename, newFile)
         # print("but not here")
-        return newFile
+        return uniqueFilename
         # while not self.recordingsWaitingForCopy.empty():
         #     self.nRecordings += 1
         #     targetRecording = self.recordingsWaitingForCopy.get()
@@ -197,13 +206,21 @@ class RecordingHandler(object):
             try:
                 while not queue_recordingsWithSpeech.empty():
                     filename = queue_recordingsWithSpeech.get()
+                    if self.verbose: print("recording with speech detected", filename)
                     targetFile = self.fetch(self.configuration.SOURCE_AUDIO_FILE_PATH, self.configuration.LOCAL_AUDIO_FILE_PATH, filename)
+                    print("releasing filename: ", filename)
                     queue_recordingFilenameBuffer.put(filename)
                     if self.noiseSuppressionHeader is not None:
+                        if self.verbose: print("appending noise suppression header to: ", targetFile)
                         targetFile = self.appendSuppressionHeader(targetFile)
                     if self.denoising:
+                        if self.verbose: print("denoising: ", targetFile)
                         targetFile = self.denoise(targetFile)
+                    if self.verbose: print("transcribing: ", targetFile)
                     transcription = self.requestTranscription(targetFile)
+                    if self.noiseSuppressionHeader is not None:
+                        transcription = re.sub(self.noiseSuppressionHeaderCharacters, "", transcription.lower()).strip()
+                    if self.verbose: print("transcription: ", transcription)
                     queue_transcriptions.put({targetFile:transcription})
                     if queue_recordingsWithSpeech.empty():
                         if recordingState.getSetAttributes(conditions={"containsSpeech": False}, setAttrDict={"pipelineClear": True}):
@@ -212,4 +229,5 @@ class RecordingHandler(object):
                         if self.verbose: print("pipeline NOT clear")
 
             except Exception as e:
-                print("Error: ", e)
+                print("Exception in recording handler: ", e)
+        print("Recording handler stopped.")

@@ -6,7 +6,7 @@ class RobotState(MutexHandler):
     These will be set by the robot's state machine.
     '''
     speaking = False
-    canSpeak = True
+    # canSpeak = True
     canListen = True
     lastSpoke = -1
     lock = Lock()

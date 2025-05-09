@@ -88,7 +88,7 @@ class GptCostTracker(object):
             self.latestRequestCost = cost
             
             if verbose:
-                print(f"Input tokens: Text={usage['input_token_details']['text_tokens']}, Cached text={usage['input_token_details']['cached_tokens_details']['text_tokens'] }, Audio={usage['input_token_details']['audio_tokens']}, Cached audio={usage['input_token_details']['cached_tokens_details']['audio_tokens']}; Output tokens: Text={usage['output_token_details']['text_tokens']}, Audio={usage['output_token_details']['audio_tokens']}.")
+                print("Input tokens: Text=",usage['input_token_details']['text_tokens'],", Cached text=",usage['input_token_details']['cached_tokens_details']['text_tokens'],", Audio=",usage['input_token_details']['audio_tokens'],", Cached audio=",usage['input_token_details']['cached_tokens_details']['audio_tokens'],"; Output tokens: Text=",usage['output_token_details']['text_tokens'],", Audio=",usage['output_token_details']['audio_tokens'],".")
                 print("Last requests cost: $%2.7f, session total cost: $%2.7f" %(self.latestRequestCost, self.totalCost))
             return cost
     
