@@ -19,11 +19,13 @@ from config import recordingConfig, whisperConfig, realtimeConfig
 def callback_humanDetected(humanState):
     humanState.setAttributes({"id": 1, "distance": 0.5})
 
-def callback_gazeDetected(humanState, condition):
-    if condition:
-        humanState.setAttributes({"gazeAwayOnset": -1})
+def callback_gazeDetected(humanState, value):
+    if value == []:
+        print("gaze off")
+        humanState.setAttributes({"gazeAwayOnset": time.time(), "gazeOnRobot": False})
     else:
-        humanState.setAttributes({"gazeAwayOnset": time.time()})
+        print("gaze on")
+        humanState.setAttributes({"gazeAwayOnset": -1, "gazeOnRobot": True})
 
 def callback_speechDetected(
         humanState,
@@ -94,6 +96,16 @@ def main(session):
         recordingState,
         pepperProxy,
         ))
+    gazeSubscriber = alMemoryService.subscriber("GazeAnalysis/PeopleLookingAtRobot")
+    gazeSubscriber.signal.connect(partial(
+        callback_gazeDetected,
+        humanState,
+        ))
+
+    # alMemoryService.subscriber("PeoplePerception/PeopleDetected")
+    # alMemoryService.subscriber("PeoplePerception/JustLeft")
+
+
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -186,6 +198,7 @@ def main(session):
                     for key in transcriptions.keys():
                         currentHumanUtterance = currentHumanUtterance + " " + transcriptions[key]
             else:
+                currentHumanUtterance = currentHumanUtterance.strip()
                 if currentHumanUtterance != "" and recordingState.getAttribute("pipelineClear"):
                     print("Generating response for transcription: ", currentHumanUtterance)
                     pepperProxy.cueBusy()

@@ -27,6 +27,7 @@ class HumanState(MutexHandler):
     id = -1
     distance = -1
     gazeAwayOnset = -1
+    gazeOnRobot = False
     speaking = False
     lastSpoke = -1
     currentUtterance = ""
