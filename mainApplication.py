@@ -60,12 +60,17 @@ def callback_speechDetected(
 def processInputAndSpeak(input, pepperProxy, robotState, realtimeClient):
     pepperProxy.cueBusy()
     robotState.setAttributes({"speaking": True,"canListen": False, "lastSpoke": time.time()})
-    realtimeClient.send({"message":input})
-    response = realtimeClient.receive()
-    print("response received: ", response["message"])
-    pepperProxy.speak(response["message"])
-    robotState.setAttributes({"speaking": False,"canListen": True, "lastSpoke": time.time()})
-    pepperProxy.cueIdle()
+    try:
+        realtimeClient.send({"message":input})
+        response = realtimeClient.receive()
+    except Exception as e:
+        print("Error communicating to realtimeClient: ", e)
+    else:
+        print("response received: ", response["message"])
+        pepperProxy.speak(response["message"])
+    finally:
+        robotState.setAttributes({"speaking": False,"canListen": True, "lastSpoke": time.time()})
+        pepperProxy.cueIdle()
 
 def main(session):
     '''
