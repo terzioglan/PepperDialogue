@@ -6,13 +6,13 @@ Overall system architecture looks like this:
 ![-System Architecture-](./architecture.png)
 
 The system is implemented for Pepper robots running NAOqi 2.5 operating system, and uses qi Python API and SDK.
-qi SDK only supports Python 2, so the `mainApplication.py` should be run using Python 2.7.X.
-Step-by-step test codes are available in `./tesCode/`, which may help using the system with a different robot and/or a different verbal interaction system.
+qi SDK only supports Python 2, so the [`mainApplication.py`](/mainApplication.py) should be run using Python 2.7.X.
+Step-by-step test codes are available in [`./testCode/`](/testCode/), which may help using the system with a different robot and/or a different verbal interaction system.
 These can be run using either Python2 or Python3. 
 
 ## Setup
 It is recommended to setup two conda environments, one with Python 2.7.x to use NAOqi SDK, and one with Python 3.x to use `openai-whisper` package.
-Anaconda environment files for these two environments are provided in `pepper-env.yml` and `whisper-env.yml` respectively.
+Anaconda environment files for these two environments are provided in [`pepper-env.yml`](/pepper-env.yml) and [`whisper-env.yml`](/whisper-env.yml) respectively.
 To create these environments, run:
 ```bash
 conda env create -f pepper-env.yml
@@ -21,9 +21,9 @@ conda env create -f whisper-env.yml
 Additionally, `qi Python SDK` should also be installed on your system.
 
 Once all the installations are complete
-1. Edit the `config.py` file and make sure the Python3 environment path is set correctly
-2. Enter your OpenAI access key in `config.py` to access the Realtime servers
-3. Feel free to edit the LLM prompt in `config.py`
+1. Edit the [`config.py`](/lib/config.py) file and make sure the Python3 environment path is set correctly
+2. Enter your OpenAI access key in [`config.py`](/lib/config.py) to access the Realtime servers
+3. Feel free to edit the LLM prompt in [`config.py`](/lib/config.py)
 4. Activate your Python2 environment (`conda activate pepperDia-py2`)
 5. And run
 ```bash
@@ -37,5 +37,5 @@ The application should then:
 4. Break long silences by initiating conversation using a specific text token (`<LONG_SILENCE>`)
 5. Go to step 1 if the person is no longer detected.
 
-The sub-process outputs are exported in `./logs/` directory.
+The sub-process outputs are exported in [`./logs/`](/logs/) directory.
 Error message, OpenAI request costs, and similar relevant information can be tracked using these log files.

@@ -15,7 +15,7 @@ class RecordingConfig(object):
     DEFAULT_NEW_AUDIO_FILE_NAME = "newRec"
 
 class WhisperConfig(object):
-    # If you already don't have a local model downloaded, the system will automatically
+    # If you don't already have a local model downloaded, the system will automatically
     # download it the first time you run the code.
     WHISPER_MODEL_FILE = "whisper_turbo_local_model.pth"
     TCP_PORT = 4242
