@@ -22,8 +22,8 @@ Additionally, `qi Python SDK` should also be installed on your system.
 
 Once all the installations are complete
 1. Edit the [`config.py`](/config.py) file and make sure the Python3 environment path is set correctly
-2. Enter your OpenAI access key in [`config.py`](/lib/config.py) to access the Realtime servers
-3. Feel free to edit the LLM prompt in [`config.py`](/lib/config.py)
+2. Enter your OpenAI access key in [`config.py`](/config.py) to access the Realtime servers
+3. Feel free to edit the LLM prompt in [`config.py`](/config.py)
 4. Activate your Python2 environment (`conda activate pepperDia-py2`)
 5. And run
 ```bash
