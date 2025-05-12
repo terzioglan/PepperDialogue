@@ -122,8 +122,11 @@ if __name__ == "__main__":
         #######################################################################################
 
     except KeyboardInterrupt:
+        pass
+    finally:
+        print("Exiting main loop.")
         recordingManager.stop = True
         recordingHandler.stop = True
         thread_recordingManager.join()
         thread_recordingHandler.join()
-        print("Exiting main loop.")
+        sys.exit(0)

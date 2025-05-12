@@ -56,11 +56,12 @@ def callback_speechDetected(
                 "lastSpoke": time.time(),
             })
         else:
-            print("Unknown value in callback_speechDetected: ", value)
+            # print("Unhandled value in callback_speechDetected: ", value)
+            pass
 
 def processInputAndSpeak(input, pepperProxy, robotState, realtimeClient):
     pepperProxy.cueBusy()
-    robotState.setAttributes({"speaking": True,"canListen": False, "lastSpoke": time.time()})
+    robotState.setAttributes({"speaking": True,"canListen": False})
     try:
         realtimeClient.send({"message":input})
         response = realtimeClient.receive()
@@ -68,9 +69,11 @@ def processInputAndSpeak(input, pepperProxy, robotState, realtimeClient):
         print("Error communicating to realtimeClient: ", e)
     else:
         print("response received: ", response["message"])
+        robotState.setAttributes({"lastSpoke": time.time()})
         pepperProxy.speak(response["message"])
+        robotState.setAttributes({"lastSpoke": time.time()})
     finally:
-        robotState.setAttributes({"speaking": False,"canListen": True, "lastSpoke": time.time()})
+        robotState.setAttributes({"speaking": False,"canListen": True})
         pepperProxy.cueIdle()
 
 def main(session):
@@ -115,7 +118,7 @@ def main(session):
         ssh.connect(hostname=args.ip, username="nao", password="nao")
     except Exception as e:
         print("cannot ssh into pepper", e)
-        return 1
+        sys.exit(1)
     scpClient = SCPClient(ssh.get_transport()) # to copy files from Pepper to local machine
     ##########################################################################################################
     # local whisper transcription service setup ##############################################################
@@ -125,7 +128,6 @@ def main(session):
         whisperProcess = subprocess.Popen(
             [whisperConfig.WHISPER_ENV,
             "./lib/whisperLocal.py",],
-            # "./lib/"+whisperConfig.WHISPER_MODEL_FILE],
             stdout=whisperLog,       
             stderr=whisperLog   
             )
@@ -211,6 +213,8 @@ def main(session):
     #############################################################################################################################
     #############################################################################################################################
     except KeyboardInterrupt:
+        print("Exiting main loop.")
+    finally:
         recordingManager.stop = True
         recordingHandler.stop = True
         recordingManagerThread.join()
@@ -225,8 +229,6 @@ def main(session):
         whisperClient.exit()
         realtimeClient.exit()
         pepperProxy.exit()
-        print("Exiting main loop.")
-    finally:
         sys.exit(0)
 
 if __name__ == "__main__":

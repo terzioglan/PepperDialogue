@@ -106,6 +106,9 @@ if __name__ == "__main__":
     thread_recordingHandler.start()
 
     try:
+        # You must enter your OpenAI API key in the `../lib/config.py` file before running this test.
+        # The API key is used to authenticate the requests to the OpenAI API.
+        
         # TEST1: MULTIPLE SPEECH OVER ALL FILES TEST ##########################################
         # person speaks briefly for half a second, then stops briefly then speaks again for a second for 10 times.
         # the recording handler and managers should
@@ -147,7 +150,7 @@ if __name__ == "__main__":
                 print("new transcription: ", transcriptions)
                 for key in transcriptions.keys():
                     transcription = transcriptions[key]
-                    print(f"requesting response for transcription: {transcription}")
+                    print("requesting response for transcription: ", transcription)
                     realtimeClient.send({"message":transcription})
                     response = realtimeClient.receive()
                     print("response received: ", response["message"])
@@ -157,8 +160,15 @@ if __name__ == "__main__":
         #######################################################################################
 
     except KeyboardInterrupt:
+        pass
+    finally:
+        print("Exiting main loop.")
         recordingManager.stop = True
         recordingHandler.stop = True
         thread_recordingManager.join()
         thread_recordingHandler.join()
-        print("Exiting main loop.")
+        whisperProcess.terminate()
+        whisperProcess.wait()
+        realtimeProcess.terminate()
+        realtimeProcess.wait()
+        sys.exit(0)

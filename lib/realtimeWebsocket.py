@@ -45,8 +45,14 @@ class RealtimeAPI(object):
         elif data['type'] == "session.updated":
             print(data)
             self.sessionUpdated = True
+        elif data['type'] == "error":
+            print(data)
+            realtime_server_response = data['error']['message'][0]['content'][0]['text']
+            self.serverResponseQueue.put(realtime_server_response)
+            # raise Exception("Error in Realtime API: %s" % data['error']['message'])
         else:
             print(data)
+
             
     def runWebsocket(self):
         ''' Establish the websocket communication.'''
@@ -74,7 +80,7 @@ class RealtimeAPI(object):
                 "content": [
                     {
                         "type": "input_text",
-                        "text": input # Audio transcription by local whisper
+                        "text": input
                     }
                 ]
             }

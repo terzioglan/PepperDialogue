@@ -3,8 +3,8 @@ import numpy as np
 
 class PepperProxy(object):
     '''
-    This will be the main handler for the engagement state.
-    It will be called periodically and take action if there is no active dialog or human is disengaging by any means.
+    This class is a wrapper for the Pepper robot's services.
+    It provides methods to control the robot's behavior, such as speaking.
     '''
     def __init__(
             self,
@@ -22,8 +22,6 @@ class PepperProxy(object):
         self.speechRecognitionService.pause(True)                            # Stop the Speech Recognition system before setting the parameters.
         self.speechRecognitionService.removeAllContext()                     # Remove all context present if any.
         self.speechRecognitionService.setLanguage('English')                 # Set Language to English
-        # vocabulary = ['Pepper']
-        # self.speechRecognitionService.setVocabulary(vocabulary, False)       # Set vocab sets ALSpeechRecognition/ActiveListening to process speech.
         self.speechRecognitionService.setVocabulary(['Pepper'], False)       # Set vocab sets ALSpeechRecognition/ActiveListening to process speech.
         self.speechRecognitionService.setParameter('Sensitivity', 1.0)       # Sensitivity [0.0, 1.0].
         self.speechRecognitionService.pause(False)                           # Restart the Speech Recognition system for settings to take effect.
@@ -35,7 +33,7 @@ class PepperProxy(object):
    
 
     def cueSpeechDetected(self,):
-        self.ledService.fadeRGB("FaceLeds", 0, 1, 0, 0) # R G B
+        self.ledService.fadeRGB("FaceLeds", 0, 1, 0, 0) # R G B Duration
     
     def cueIdle(self,):
         self.ledService.reset("FaceLeds")

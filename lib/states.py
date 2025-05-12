@@ -49,13 +49,13 @@ class HumanState(MutexHandler):
 #     lookingAway = False # triggered by timeouts
 #     lock = Lock()
 
-class SpeechRequest(object):
-    speechType = 'speech'
-    priority = 'normal'
-    content = ''
+# class SpeechRequest(object):
+#     speechType = 'speech'
+#     priority = 'normal'
+#     content = ''
 
-class OpenAIResponseRequest(object):
-    responseType = 'response'
-    # responseType = 'sessionUpdate'
-    request = ''
+# class OpenAIResponseRequest(object):
+#     responseType = 'response'
+#     # responseType = 'sessionUpdate'
+#     request = ''
 

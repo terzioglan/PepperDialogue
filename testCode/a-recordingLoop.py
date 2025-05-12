@@ -66,7 +66,7 @@ if __name__ == "__main__":
         # TEST2: ONCE SPEECH TEST #############################################################
         # person speaks briefly for a second, then stops.
         # 1 recording file should be added to queue_recordingsWithSpeech,
-        # rest recording files should be infinitely recycled.
+        # rest of the recording files should be indefinitely recycled.
         print("ONCE SPEECH TEST STARTING")
         # input("enter to continue")
         time.sleep(4.0)
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         # TEST 3: MULTIPLE SPEECH TEST ########################################################
         # person speaks briefly for a second, then stops briefly then speaks again for a second for 10 times.
         # 1 recording file should be added to queue_recordingsWithSpeech,
-        # rest recording files should be infinitely recycled.
+        # rest recording files should be indefinitely recycled.
         print("MULTIPLE SPEECH TEST OVER ONE FILE TEST STARTING")
         # input("enter to continue")
         time.sleep(4.0)
@@ -148,7 +148,7 @@ if __name__ == "__main__":
         # TEST4: MULTIPLE SPEECH OVER ALL FILES TEST ##########################################
         # person speaks briefly for a second, then stops briefly then speaks again for a second for 10 times.
         # all recording files should be added to queue_recordingsWithSpeech,
-        # and the recordingmanager should complain no available filenames.
+        # and the recording manager should complain there are no available filenames.
         print("MULTIPLE SPEECH OVER ALL FILES TEST STARTING")
         # input("enter to continue")
         time.sleep(4.0)
@@ -247,6 +247,9 @@ if __name__ == "__main__":
         # #######################################################################################
 
     except KeyboardInterrupt:
-        recordingManager.stop = True
-        # thread_recordingManager.join()
+        pass
+    finally:
         print("Exiting main loop.")
+        recordingManager.stop = True
+        thread_recordingManager.join()
+        sys.exit(0)

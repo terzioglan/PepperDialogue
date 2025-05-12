@@ -50,7 +50,6 @@ if __name__ == "__main__":
         whisperProcess = subprocess.Popen(
             [whisperConfig.WHISPER_ENV,
             "../lib/whisperLocal.py",],
-            # "../lib/"+whisperConfig.WHISPER_MODEL_FILE],
             # stdout=whisper_server_logs,       
             # stderr=whisper_server_logs   
             )
@@ -136,8 +135,13 @@ if __name__ == "__main__":
         #######################################################################################
 
     except KeyboardInterrupt:
+        pass
+    finally:
+        print("Exiting main loop.")
         recordingManager.stop = True
         recordingHandler.stop = True
         thread_recordingManager.join()
         thread_recordingHandler.join()
-        print("Exiting main loop.")
+        whisperProcess.terminate()
+        whisperProcess.wait()
+        sys.exit(0)

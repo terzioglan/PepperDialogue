@@ -3,6 +3,7 @@
 
 Overall system architecture looks like this:
 
+![-System Architecture-](./architecture.png)
 
 The system is implemented for Pepper robots running NAOqi 2.5 operating system, and uses qi Python API and SDK.
 qi SDK only supports Python 2, so the `mainApplication.py` should be run using Python 2.7.X.
@@ -31,11 +32,10 @@ python mainApplication.py --ip your.pepper.robot.ip
 
 The application should then:
 1. Wait until the robot detects a human gaze on it
-2. Request a conversation initiation utterance from the Realtime server
+2. Request a conversation initiation utterance from the Realtime server using a specific text token (`<LOOKING>`)
 3. Keep conversing with the person as long as the person is still visible
-4. Break long silences by initiation conversation
+4. Break long silences by initiating conversation using a specific text token (`<LONG_SILENCE>`)
 5. Go to step 1 if the person is no longer detected.
-
 
 The sub-process outputs are exported in `./logs/` directory.
 Error message, OpenAI request costs, and similar relevant information can be tracked using these log files.
