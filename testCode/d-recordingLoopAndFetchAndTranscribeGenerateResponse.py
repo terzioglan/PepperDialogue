@@ -21,13 +21,6 @@ def stopRecording():
 
 def fetchRecording(sourceFile, destinationFile):
     return shutil.copyfile(sourceFile, destinationFile)
-    # shutil.copyfile(source+filename, destination+defaultAudioName)
-    # newFile = fixNameConflicts(destination+defaultAudioName, '.'+filename.split('.')[-1])
-    # # os.rename(destination+filename,destination+newFilename)
-    # time.sleep(0.2)
-    # print("recording copied", source)
-    # # return destination+newFilename
-    # return newFile
 
 if __name__ == "__main__":
     '''
