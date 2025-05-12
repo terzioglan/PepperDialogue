@@ -91,29 +91,3 @@ class GptCostTracker(object):
                 print("Input tokens: Text=",usage['input_token_details']['text_tokens'],", Cached text=",usage['input_token_details']['cached_tokens_details']['text_tokens'],", Audio=",usage['input_token_details']['audio_tokens'],", Cached audio=",usage['input_token_details']['cached_tokens_details']['audio_tokens'],"; Output tokens: Text=",usage['output_token_details']['text_tokens'],", Audio=",usage['output_token_details']['audio_tokens'],".")
                 print("Last requests cost: $%2.7f, session total cost: $%2.7f" %(self.latestRequestCost, self.totalCost))
             return cost
-    
-
-
-# def queueTest():
-#     transcriptionQueue = Queue(maxsize=100)
-#     recordingFileQueue = Queue(maxsize=100)
-#     recordingHandler = RecordingFileHandler()
-#     recordingHandlerProcess = Process(
-#         target = recordingHandler.start,
-#         args = (recordingFileQueue,transcriptionQueue,),)
-#     recordingHandlerProcess.start()
-
-#     filename = "recording"
-#     i = 0
-#     try:
-#         while True:
-#             recordingFileQueue.put(filename+'_'+str(i))
-#             while not transcriptionQueue.empty():
-#                 transcription = transcriptionQueue.get()
-#                 print("Got transcription: ", transcription)
-#             i += 1
-#             time.sleep(0.2)
-#     except KeyboardInterrupt:
-#         recordingHandler.stop = True
-#         recordingHandlerProcess.join()
-#         print("Exiting main loop.")

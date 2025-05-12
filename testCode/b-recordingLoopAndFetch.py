@@ -87,8 +87,8 @@ if __name__ == "__main__":
         # - transcribe them (transcription is just a placeholder for this test)
         # - and put the transcriptions in the queue_transcriptions
         print("MULTIPLE SPEECH OVER ALL FILES TEST STARTING")
-        input("enter to continue")
-        time.sleep(2.0)
+        # input("enter to continue")
+        time.sleep(4.0)
         # speech detected
         for i in range(10):
             # print(recordingState.getAttribute("currentFile"))

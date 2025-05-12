@@ -1,0 +1,14 @@
+name: pepperDia-py3
+channels:
+  - pytorch
+  - defaults
+dependencies:
+  - pip=25.0=py311h06a4308_0
+  - python=3.11
+  - pip:
+    - openai-whisper==20240930
+    - torch==2.6.0
+    - torchaudio==2.6.0
+    - torchvision==0.21.0
+    - websocket-client==1.8.0
+prefix: ~/anaconda3/envs/pepperDia-py3

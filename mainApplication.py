@@ -10,7 +10,8 @@ import paramiko
 import qi
 
 from lib.recordingManagers import RecordingManager, RecordingHandler
-from lib.states import RobotState, RecordingState, HumanState, EngagementState
+from lib.states import RobotState, RecordingState, HumanState
+# from lib.states import EngagementState
 from lib.serverClient import Client
 from lib.pepperProxy import PepperProxy
 from lib.utils import fixNameConflicts
@@ -239,5 +240,5 @@ if __name__ == "__main__":
     except RuntimeError:
         print("Unable to connect to pepper")
         sys.exit(0)
-    finally:
+    else:
         main(session)

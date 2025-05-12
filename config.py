@@ -20,7 +20,7 @@ class WhisperConfig(object):
     WHISPER_MODEL_FILE = "whisper_turbo_local_model.pth"
     TCP_PORT = 4242
     TCP_DATA_SIZE = 1024
-    WHISPER_ENV = HOME+"/anaconda3/envs/whisper/bin/python" # TODO: Specify your own conda environment with whisper python installed.
+    WHISPER_ENV = HOME+"/anaconda3/envs/pepperDia-py3/bin/python" # TODO: Specify your own conda environment with openai-whisper python package is installed.
 
 class RealtimeConfig(object):
     # To generate an api key go to: https://platform.openai.com/settings/organization/api-keys

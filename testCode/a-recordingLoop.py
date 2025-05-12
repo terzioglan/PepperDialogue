@@ -52,7 +52,8 @@ if __name__ == "__main__":
         # recording buffer file names should be infinitely recycled without any of them being
         # put into the queue_recordingsWithSpeech
         print("NO SPEECH TEST STARTING")
-        input("enter to continue")
+        # input("enter to continue")
+        time.sleep(4.0)
         start = time.time()
         while time.time() - start < 30:
             if queue_recordingsWithSpeech.empty():
@@ -67,8 +68,8 @@ if __name__ == "__main__":
         # 1 recording file should be added to queue_recordingsWithSpeech,
         # rest recording files should be infinitely recycled.
         print("ONCE SPEECH TEST STARTING")
-        input("enter to continue")
-        time.sleep(2.0)
+        # input("enter to continue")
+        time.sleep(4.0)
         print("speaking")
         humanState.setAttributes({
             "speaking": True,
@@ -106,8 +107,8 @@ if __name__ == "__main__":
         # 1 recording file should be added to queue_recordingsWithSpeech,
         # rest recording files should be infinitely recycled.
         print("MULTIPLE SPEECH TEST OVER ONE FILE TEST STARTING")
-        input("enter to continue")
-        time.sleep(2.0)
+        # input("enter to continue")
+        time.sleep(4.0)
         # speech detected
         for i in range(10):
             print("speaking")
@@ -149,8 +150,8 @@ if __name__ == "__main__":
         # all recording files should be added to queue_recordingsWithSpeech,
         # and the recordingmanager should complain no available filenames.
         print("MULTIPLE SPEECH OVER ALL FILES TEST STARTING")
-        input("enter to continue")
-        time.sleep(2.0)
+        # input("enter to continue")
+        time.sleep(4.0)
         # speech detected
         while not queue_recordingFilenameBuffer.empty():
             print(recordingState.getAttribute("currentFile"))
@@ -207,8 +208,8 @@ if __name__ == "__main__":
         # # TEST5: SHORT SPEECH OVER ONE FILE TEST ##############################################
         # person speaks briefly for a second, then stops. recording should take less than the full idle duration
         print("SHORT SPEECH OVER ONE FILE TEST STARTING")
-        input("enter to continue")
-        time.sleep(2.0)
+        # input("enter to continue")
+        time.sleep(4.0)
         # speech detected
         print(recordingState.getAttribute("currentFile"))
         print("speaking")

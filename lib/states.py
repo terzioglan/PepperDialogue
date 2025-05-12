@@ -33,21 +33,21 @@ class HumanState(MutexHandler):
     currentUtterance = ""
     lock = Lock()
 
-class EngagementState(MutexHandler):
-    '''
-    States here can be triggered immediately or after timeouts.
-    If human can't be detected, set humanPresent to False immediately.
-    If the human is silent for a certain amount of time, set longSilence to True.
-    If the human is looking away for a certain amount of time, set lookingAway to True.
-    If the human is beyond a certain distance from the robot, set leaving to True.
+# class EngagementState(MutexHandler):
+#     '''
+#     States here can be triggered immediately or after timeouts.
+#     If human can't be detected, set humanPresent to False immediately.
+#     If the human is silent for a certain amount of time, set longSilence to True.
+#     If the human is looking away for a certain amount of time, set lookingAway to True.
+#     If the human is beyond a certain distance from the robot, set leaving to True.
     
-    This will be handled in a timed refresh loop, which will set the states, and send a request to handler.
-    '''
-    humanPresent = False
-    longSilence = False # triggered by timeouts
-    leaving = False # triggered by timeouts
-    lookingAway = False # triggered by timeouts
-    lock = Lock()
+#     This will be handled in a timed refresh loop, which will set the states, and send a request to handler.
+#     '''
+#     humanPresent = False
+#     longSilence = False # triggered by timeouts
+#     leaving = False # triggered by timeouts
+#     lookingAway = False # triggered by timeouts
+#     lock = Lock()
 
 class SpeechRequest(object):
     speechType = 'speech'

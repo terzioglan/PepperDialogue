@@ -1,4 +1,4 @@
-import qi, almath 
+import almath 
 import numpy as np
 
 class PepperProxy(object):
