@@ -132,10 +132,10 @@ class RecordingHandler(object):
         try:
             (
                 ffmpeg
-                .input(inputFile)                                                           # Takes 'microphoneTest.wav'
-                .output(outputFile, af="highpass=f=200, lowpass=f=3000, afftdn=nf=-20")     # Gives 'microphoneTest_denoised.wav'
-                .overwrite_output()                                                         # To automatically overwrite file incase prompted
-                .global_args('-loglevel', 'quiet')                                          # Hide logs
+                .input(inputFile)
+                .output(outputFile, af="highpass=f=200, lowpass=f=3000, afftdn=nf=-20")
+                .overwrite_output()
+                .global_args('-loglevel', 'quiet')
                 .run()
             )
             return outputFile
@@ -155,13 +155,13 @@ class RecordingHandler(object):
 
             (
                 ffmpeg
-                .input(audioFilesList, format='concat', safe=0)     # Concat files
-                .output(outputFile, acodec='copy')                  # Outputs 'microphoneTest_denoised_header.wav'
-                .overwrite_output()                                 # To automatically overwrite file in case prompted
-                .global_args('-loglevel', 'quiet')                  # Hide logs
+                .input(audioFilesList, format='concat', safe=0)
+                .output(outputFile, acodec='copy')
+                .overwrite_output()
+                .global_args('-loglevel', 'quiet')
                 .run()
             )     
-            os.remove(audioFilesList)                               # Remove the temporary file
+            os.remove(audioFilesList)
             return outputFile
         except Exception as e:
             print("concatenating error: ", e)
