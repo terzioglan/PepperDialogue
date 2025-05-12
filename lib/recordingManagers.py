@@ -17,10 +17,10 @@ class RecordingManager(object):
         self.transcriptionClient = None
         self.verbose = verbose
     
-    # def startRecording(self,filename, microphoneArray = [1,1,1,1], bitrate = 16000):
     def startRecording(self,filename,):
         try:
             self.method_startRecording(self.configuration.SOURCE_AUDIO_FILE_PATH + filename, "wav",  16000, [1,1,1,1])
+            # print("Recording started...")
         except Exception as e:
             print("couldn't start recording: ", e)
         else:
@@ -28,13 +28,11 @@ class RecordingManager(object):
     
     def stopRecording(self,):
         try:
-            # self.recordingService.stopMicrophonesRecording()
             self.method_stopRecording()
             # print("Recording stopped...")
         except Exception as e:
             print("couldn't stop recording: ", e)
-
-    
+ 
     def discardRecording(self,queue_recordingFilenameBuffer, currentFilename):
         queue_recordingFilenameBuffer.put(currentFilename)
     
@@ -48,17 +46,7 @@ class RecordingManager(object):
         while not self.stop:
             padding = False
             if not queue_recordingFilenameBuffer.empty():
-                # currentFilename = queue_recordingFilenameBuffer.get()
-                # recordingState.setAttributes({
-                #     "currentFile": currentFilename,
-                #     "containsSpeech": False,
-                #     })
                 if robotState.getAttribute('canListen'):
-                    # recordingState.setAttributes({
-                    #     "startTime": time.time(),
-                    #     "recording": True,
-                    #     })
-                    
                     currentFilename = queue_recordingFilenameBuffer.get()
                     recordingState.setAttributes({
                         "currentFile": currentFilename,
@@ -136,23 +124,7 @@ class RecordingHandler(object):
         uniqueFilename = fixNameConflicts(localPath+filename)
         os.rename(localPath+defaultNewFilename,
                   uniqueFilename)
-        # print("here")
-        # os.rename(localPath+filename, newFile)
-        # print("but not here")
         return uniqueFilename
-        # while not self.recordingsWaitingForCopy.empty():
-        #     self.nRecordings += 1
-        #     targetRecording = self.recordingsWaitingForCopy.get()
-        #     print("retrieving audio file from pepper: " + str(targetRecording))
-        #     self.secureCopyProtocolService.get(self.remoteFileStoragePath+targetRecording, local_path=self.localFileStoragePath)
-        #     fixNameConflicts(self.defaultAudioName, targetRecording[-4:])
-        #     self.newAudioFileName = str(self.nRecordings) + targetRecording
-        #     os.rename(self.localFileStoragePath+targetRecording,self.localFileStoragePath+self.newAudioFileName)
-        #     self.recordingQueue.put(self.newAudioFileName)
-        #     self.recordingBufferFilenames.put(targetRecording)
-
-        # self.secureCopyProtocolService.close()
-
     
     def denoise(self, inputFile):
         extension = '.' + inputFile.split(".")[-1]
