@@ -71,4 +71,4 @@ class PepperProxy(object):
     
     def exit(self,):
         self.audioRecorderService.stopMicrophonesRecording()
-        self.eyesReset()
+        self.cueIdle()
