@@ -6,7 +6,7 @@ Overall system architecture looks like this:
 ![-System Architecture-](./architecture.png)
 
 The system is implemented for Pepper robots running NAOqi 2.5 operating system, and uses qi Python API and SDK.
-qi SDK only supports Python 2, so the [`mainApplication.py`](/mainApplication.py) should be run using Python 2.7.X.
+qi SDK only supports Python 2, so the `mainApplication.py` should be run using Python 2.7.X.
 Step-by-step test codes are available in [`./testCode/`](/testCode/), which may help using the system with a different robot and/or a different verbal interaction system.
 These can be run using either Python2 or Python3. 
 
