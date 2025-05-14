@@ -18,11 +18,7 @@ class Server(object):
         self.conn.sendall(data.encode('utf-8'))
     
     def receive(self,size):
-        # either:
         data = self.conn.recv(size).decode('utf-8')
-        # or:
-        # data = self.sct.recv(size).decode('utf-8')
-        # print(json.loads(data))
         return json.loads(data)
     
     def exit(self,):
