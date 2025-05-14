@@ -45,8 +45,9 @@ The [`mainApplication.py`](./mainApplication.py) uses a [`PepperProxy`](./lib/pe
 Ideally, this class can be replaced with another to adapt the whole system to be used with a different voice activity detection system.
 In this case,
 1. The [callback functions](./mainApplication.py#L20) `callback_speechDetected`, `callback_gazeDetected`, `callback_humanDetected`, `callback_humanLeft` should either be replaced according to the new target voice activity system's functionalities or removed
-2. The [`RecordingManager`](./lib/recordingManagers.py#L6) class should be provided with available methods during [initialization](./mainApplication.py#L159) for starting and stopping audio recordings using the target system
+2. The [`RecordingManager`](./lib/recordingManagers.py#L6) class should be provided with available methods during [initialization](./mainApplication.py#L159) to start and stop audio recordings using the target system
 3. The [`RecordingHandler`](./lib/recordingManagers.py#L91) class should be provided with a method during [initialization](./mainApplication.py#L166) to fetch the recording from the target system, if necessary
 4. Directory for the audio file source, [`SOURCE_AUDIO_FILE_PATH`](./config.py#L13) should be edited as appropriate
 5. Hope for the best.
 
+Another good starting point for integrating another voice activity system is following the test code in [`./testCode/`](./testCode/) from step `a-..py` to step `d-..py`, and making sure that the intended functionalities work with each individual sub-block of the system.
