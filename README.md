@@ -21,9 +21,9 @@ conda env create -f whisper-env.yml
 Additionally, `qi Python SDK` should also be installed on your system.
 
 Once all the installations are complete
-1. Edit the [`config.py`](/config.py) file and make sure the Python3 environment path is set correctly
-2. Enter your OpenAI access key in [`config.py`](/config.py) to access the Realtime servers
-3. Feel free to edit the LLM prompt in [`config.py`](/config.py)
+1. Edit the [`config.py`](/config.py#L23) file and make sure the Python3 environment path is set correctly
+2. Enter your OpenAI access key in [`config.py`](/config.py#L27) to access the Realtime servers
+3. Feel free to edit the LLM prompt in [`config.py`](/config.py#L29)
 4. Activate your Python2 environment (`conda activate pepperDia-py2`)
 5. And run
 ```bash
@@ -41,12 +41,12 @@ The sub-process outputs are exported in [`./logs/`](/logs/) directory.
 Error message, OpenAI request costs, and similar relevant information can be tracked using these log files.
 
 ## Using with another voice activity detection system
-The [`mainApplication.py`](./mainApplication.py) uses a ['PepperProxy'](./lib/pepperProxy.py) class to communicate with the robot.
+The [`mainApplication.py`](./mainApplication.py) uses a [`PepperProxy`](./lib/pepperProxy.py) class to communicate with the robot.
 Ideally, this class can be replaced with another to adapt the whole system to be used with a different voice activity detection system.
 In this case,
-1. The [callback functions](./mainApplication.py) `callback_speechDetected`, `callback_gazeDetected`, `callback_humanDetected`, `callback_humanLeft` should either be replaced according to the new target voice activity system's functionalities or removed
-2. The [RecordingManager](./lib/recordingManagers.py#L6) class should be provided with available methods during initialization for starting and stopping audio recordings using the target system
-3. The [RecordingHandler](./lib/recordingManagers.py#L91) class should be provided with a method to fetch the recording from the target system,if necessary
+1. The [callback functions](./mainApplication.py#L20) `callback_speechDetected`, `callback_gazeDetected`, `callback_humanDetected`, `callback_humanLeft` should either be replaced according to the new target voice activity system's functionalities or removed
+2. The [`RecordingManager`](./lib/recordingManagers.py#L6) class should be provided with available methods during initialization for starting and stopping audio recordings using the target system
+3. The [`RecordingHandler`](./lib/recordingManagers.py#L91) class should be provided with a method to fetch the recording from the target system,if necessary
 4. Directory for the audio file source, [SOURCE_AUDIO_FILE_PATH](./config.py) should be edited as appropriate
 5. Hope for the best.
 
