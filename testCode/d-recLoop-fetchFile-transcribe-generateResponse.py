@@ -44,7 +44,6 @@ if __name__ == "__main__":
         whisperProcess = subprocess.Popen(
             [whisperConfig.WHISPER_ENV,
             "../lib/whisperLocal.py",],
-            # "../lib/"+whisperConfig.WHISPER_MODEL_FILE],
             stdout=whisperLog,       
             stderr=whisperLog,   
             )
@@ -164,4 +163,6 @@ if __name__ == "__main__":
         whisperProcess.wait()
         realtimeProcess.terminate()
         realtimeProcess.wait()
+        whisperLog.close()
+        realtimeLog.close()
         sys.exit(0)

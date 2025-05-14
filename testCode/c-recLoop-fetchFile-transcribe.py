@@ -45,13 +45,13 @@ if __name__ == "__main__":
 
     # Server setup for local Whisper model ################################################################
     try:
-        # logFileName = fixNameConflicts(DEFAULT_LOCAL_WHISPER_CONFIG.whisper_server_logs_path[:-4]+"_"+args.logID,".log")
-        # whisper_server_logs = open(logFileName, "w")
+        # whisperLogName = fixNameConflicts("./logs/whisper_log.log")
+        # whisperLog = open(whisperLogName, "w")
         whisperProcess = subprocess.Popen(
             [whisperConfig.WHISPER_ENV,
             "../lib/whisperLocal.py",],
-            # stdout=whisper_server_logs,       
-            # stderr=whisper_server_logs   
+            # stdout=whisperLog,       
+            # stderr=whisperLog   
             )
     except Exception as e:
         print("cannot start whisper sub process", e)
@@ -144,4 +144,5 @@ if __name__ == "__main__":
         thread_recordingHandler.join()
         whisperProcess.terminate()
         whisperProcess.wait()
+        # whisperLog.close()
         sys.exit(0)
