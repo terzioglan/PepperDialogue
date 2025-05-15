@@ -1,5 +1,5 @@
 # Integration demonstrations for the provided modules
-The scripts here are intended to serve as demo applications for the modules inside [`../lib/`](../lib/).
+The scripts here are intended to serve as demo applications for the `realtimeWebsocket` and `whisperLocal` modules inside [`../lib/`](../lib/).
 The main purpose of these demos is to examplify how these modules can be connected with applications that are not based on a Pepper robot.
 These demos are especially relevant if you intend to use these modules in conjunction with non-python applications.
 
