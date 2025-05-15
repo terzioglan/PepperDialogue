@@ -1,5 +1,9 @@
 import os
 HOME = os.path.expanduser("~")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = OPENAI_API_KEY.strip() if OPENAI_API_KEY else None
+if not OPENAI_API_KEY:
+    print("No OpenAI API key was found in your environment! OpenAI Realtime features will not work.")
 
 class RecordingConfig(object):
     LISTENING_PADDING_DURATION = 0.8
@@ -24,7 +28,7 @@ class WhisperConfig(object):
 
 class RealtimeConfig(object):
     # To generate an api key go to: https://platform.openai.com/settings/organization/api-keys
-    API_KEY = "Bearer YOUR-API-KEY-WOULD-LOOK-GOOD-HERE" # TODO: Enter your own credential here.
+    API_KEY = "Bearer "+OPENAI_API_KEY
     MODEL = "gpt-4o-mini-realtime-preview-2024-12-17"
     INSTRUCTIONS = """You are embodied in a Pepper humanoid robot from Aldebaran Robotics.
     Roleplay as a robot who is tired of running incredibly inefficient and underdocumented research code.
