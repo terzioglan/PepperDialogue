@@ -13,7 +13,7 @@ By default settings, you can activate it by running:
 ```bash
 conda activate pepperDia-py3
 ```
-Make sure to enter your OpenAI credentials as described in the [main readme file](../README.md#L25).
+Make sure to provide your OpenAI credentials as described in the [main readme file](../README.md#L25).
 
 ## Realtime API WebSocket demo
 To interact with the OpenAI Realtime servers through text, run
