@@ -1,5 +1,4 @@
-# python2
-
+# python 2 or 3
 import time, sys
 sys.path.append("../")
 from multiprocessing import Queue

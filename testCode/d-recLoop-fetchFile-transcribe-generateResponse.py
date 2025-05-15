@@ -1,4 +1,4 @@
-# python2
+# python 2 or 3
 
 import time, sys, shutil, subprocess
 sys.path.append("../")
@@ -107,7 +107,7 @@ if __name__ == "__main__":
         # - get the files as they appear in queue_recordingsWithSpeech
         # - release the recording filenames as they are copied and renamed
         # - denoise the recordings in the local directory, 
-        # - transcribe them (transcription is just a placeholder for this test)
+        # - transcribe them
         # - and put the transcriptions in the queue_transcriptions
         print("MULTIPLE SPEECH OVER ALL FILES TEST STARTING")
         # input("enter to continue")

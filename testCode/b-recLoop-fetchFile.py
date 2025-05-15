@@ -1,9 +1,8 @@
-# python2
+# python 2 or 3
 
-import time, sys, shutil, os
+import time, sys, shutil
 sys.path.append("../")
-from multiprocessing import Process, Queue
-from functools import partial
+from multiprocessing import Queue
 from threading import Thread
 
 from lib.recordingManagers import RecordingHandler, RecordingManager
@@ -20,13 +19,6 @@ def stopRecording():
 
 def fetchRecording(sourceFile, destinationFile):
     return shutil.copyfile(sourceFile, destinationFile)
-    # shutil.copyfile(source+filename, destination+defaultAudioName)
-    # newFile = fixNameConflicts(destination+defaultAudioName, '.'+filename.split('.')[-1])
-    # # os.rename(destination+filename,destination+newFilename)
-    # time.sleep(0.2)
-    # print("recording copied", source)
-    # # return destination+newFilename
-    # return newFile
 
 def requestTranscription(filename):
     filename += '_transcribed'
