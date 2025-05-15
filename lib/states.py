@@ -3,7 +3,8 @@ from lib.mutexHandler import MutexHandler
 
 class RobotState(MutexHandler):
     '''
-    These will be set by the robot's state machine.
+    These are set in the mainApplication before and after the robot speaks.
+    Has a direct effect on how speech recognition callbacks are handled.
     '''
     speaking = False
     # canSpeak = True
@@ -12,6 +13,11 @@ class RobotState(MutexHandler):
     lock = Lock()
 
 class RecordingState(MutexHandler):
+    '''
+    recording, currentFile, startTime are set by the recordingManager
+    containsSpeech and pipelineClear are set by the voice activity detection callback
+    pipeline clear is reset to True once the last recording is handled by the recordingHandler.
+    '''
     recording = False
     currentFile = ''
     startTime = -1
@@ -22,7 +28,8 @@ class RecordingState(MutexHandler):
 
 class HumanState(MutexHandler):
     '''
-    These will be set by detection callbacks from the robot.
+    These are set by the speech and human detection callbacks.
+    currentUtterance is currently not used, but it can be used to store the last utterance
     '''
     id = -1
     distance = -1
@@ -33,6 +40,7 @@ class HumanState(MutexHandler):
     currentUtterance = ""
     lock = Lock()
 
+# Looking further:
 # class EngagementState(MutexHandler):
 #     '''
 #     States here can be triggered immediately or after timeouts.
