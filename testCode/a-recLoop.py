@@ -57,7 +57,7 @@ if __name__ == "__main__":
         while time.time() - start < 30:
             if queue_recordingsWithSpeech.empty():
                 print("queue_recordingsWithSpeech is empty")
-            print(recordingState.getAttribute("currentFile"))
+            print("current file: ", recordingState.getAttribute("currentFile"))
             time.sleep(2)
         print("NO SPEECH TEST OVER\\n\n")
         #######################################################################################
@@ -93,7 +93,7 @@ if __name__ == "__main__":
                 audioFilename = queue_recordingsWithSpeech.get()
                 audioFileList.append(audioFilename)
                 print("recordingWithSpeehQueue has item!: ", audioFilename)
-            print(recordingState.getAttribute("currentFile"))
+            print("current file: ", recordingState.getAttribute("currentFile"))
             time.sleep(2)
         for item in audioFileList:
             queue_recordingFilenameBuffer.put(item)
@@ -137,7 +137,7 @@ if __name__ == "__main__":
                 audioFileList.append(audioFilename)
                 print("recordingWithSpeehQueue has item!: ", audioFilename)
                 start = time.time()
-            print(recordingState.getAttribute("currentFile"))
+            print("current file: ", recordingState.getAttribute("currentFile"))
             time.sleep(2)
         for item in audioFileList:
             queue_recordingFilenameBuffer.put(item)
@@ -197,7 +197,7 @@ if __name__ == "__main__":
                 audioFileList.append(audioFilename)
                 print("recordingWithSpeehQueue has item!: ", audioFilename)
                 start = time.time()
-            print(recordingState.getAttribute("currentFile"))
+            print("current file: ", recordingState.getAttribute("currentFile"))
             time.sleep(2)
         for item in audioFileList:
             queue_recordingFilenameBuffer.put(item)
@@ -238,7 +238,7 @@ if __name__ == "__main__":
                 audioFileList.append(audioFilename)
                 print("recordingWithSpeehQueue has item!: ", audioFilename)
                 start = time.time()
-            print(recordingState.getAttribute("currentFile"))
+            print("current file: ", recordingState.getAttribute("currentFile"))
             time.sleep(2)
         for item in audioFileList:
             queue_recordingFilenameBuffer.put(item)
