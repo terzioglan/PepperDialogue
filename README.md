@@ -11,7 +11,7 @@ Step-by-step test codes are available in [`./testCode/`](/testCode/), which may 
 These can be run using either Python2 or Python3. 
 
 ## Setup
-It is recommended to setup two conda environments, one with Python 2.7.x to use NAOqi SDK, and one with Python 3.x to use `openai-whisper` package.
+It is recommended to setup two Anaconda virtual environments: One with Python 2.7.x to use NAOqi SDK, and one with Python 3.x to use `openai-whisper` package.
 Anaconda environment files for these two environments are provided in [`pepper-env.yml`](/pepper-env.yml) and [`whisper-env.yml`](/whisper-env.yml) respectively.
 To create these environments, run:
 ```bash
@@ -21,10 +21,26 @@ conda env create -f whisper-env.yml
 Additionally, `qi Python SDK` should also be installed on your system.
 
 Once all the installations are complete
-1. Edit the [`config.py`](/config.py#L23) file and make sure the Python3 environment path is set correctly
-2. Enter your OpenAI access key in [`config.py`](/config.py#L27) to access the Realtime servers. To generate an api key, go to: https://platform.openai.com/settings/organization/api-keys
-3. Feel free to edit the LLM prompt in [`config.py`](/config.py#L29)
-4. Activate your Python2 environment (`conda activate pepperDia-py2`)
+1. Check the [`config.py`](/config.py#L27) file and make sure the Python3 environment path is set correctly
+2. Make sure you have an OpenAI API key to use OpenAI Realtime feature. To generate an api key, go to: https://platform.openai.com/settings/organization/api-keys
+    - Activate your Python2 Pepper environment and set your OpenAI API key:
+        ```bash
+        conda activate pepperDia-py2
+        conda env config vars set OPENAI_API_KEY=your-api-key
+        conda deactivate
+        ```
+    - Activate your Whisper environment and set your OpenAI API key:
+        ```bash
+        conda activate pepperDia-py3
+        conda env config vars set OPENAI_API_KEY=your-api-key
+        conda deactivate
+        ```
+    - Alternatively, you can direcly edit the `OPENAI_API_KEY` in [`config.py`](/config.py#L3), which is highly discouraged. 
+3. Feel free to edit the LLM prompt in [`config.py`](/config.py#L33)
+4. Activate your Python2 environment
+```bash
+conda activate pepperDia-py2
+```
 5. And run
 ```bash
 python mainApplication.py --ip your.pepper.robot.ip
@@ -47,7 +63,7 @@ In this case,
 1. The [callback functions](./mainApplication.py#L20) `callback_speechDetected`, `callback_gazeDetected`, `callback_humanDetected`, `callback_humanLeft` should either be replaced according to the new target voice activity system's functionalities or removed
 2. The [`RecordingManager`](./lib/recordingManagers.py#L6) class should be provided with available methods during [initialization](./mainApplication.py#L159) to start and stop audio recordings using the target system
 3. The [`RecordingHandler`](./lib/recordingManagers.py#L91) class should be provided with a method during [initialization](./mainApplication.py#L166) to fetch the recording from the target system, if necessary
-4. Directory for the audio file source, [`SOURCE_AUDIO_FILE_PATH`](./config.py#L13) should be edited as appropriate
+4. Directory for the audio file source, [`SOURCE_AUDIO_FILE_PATH`](./config.py#L17) should be edited as appropriate
 5. Fingers should be crossed.
 
 Another good starting point for integrating another voice activity system is following the test code in [`./testCode/`](./testCode/) from step `a-..py` to step `d-..py`, and making sure that the intended functionalities work with each individual sub-block of the system.
