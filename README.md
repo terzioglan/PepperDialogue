@@ -1,7 +1,7 @@
 # LLM-powered dialogues with a Pepper robot
 [`mainApplication.py`](./mainApplication.py)  uses Pepper's voice activity detection system to start/stop audio recordings, copy the recording files from the robot to the local system, transcribes the recordings using `openai-whisper` package using a local Whisper model, and uses OpenAI Realtime webclient to request and receive responses through a WebSocket. The LLM response is later uttered by the robot.
 
-Overall system architecture looks like this:
+A simplified system diagram is shown below.
 
 ![-System Architecture-](./architecture.png)
 
