@@ -51,3 +51,6 @@ In this case,
 5. Fingers should be crossed.
 
 Another good starting point for integrating another voice activity system is following the test code in [`./testCode/`](./testCode/) from step `a-..py` to step `d-..py`, and making sure that the intended functionalities work with each individual sub-block of the system.
+
+## Using with a system that is not python-based
+Check out [`./moduleDemos`](./moduleDemos/) for a couple example scenarios, where you may use TCP connections to communicate with OpenAI WebSocked and local Whisper modules.
