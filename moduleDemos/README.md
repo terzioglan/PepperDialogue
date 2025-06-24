@@ -7,6 +7,8 @@ The summary of three demo scenarios are shown below.
 
 ![-Integration Demo-](./integrationDemo.png)
 
+These modules are currently being improved for other applications here: [https://github.com/terzioglan/OpenaiPythonIntegration/](https://github.com/terzioglan/OpenaiPythonIntegration/)
+
 ## Setup
 To run the code here, you can use the conda environment you've created for the Whisper python using [`whisper-env.yml`](../whisper-env.yml) if you already have.
 By default settings, you can activate it by running:
